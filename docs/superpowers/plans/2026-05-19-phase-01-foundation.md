@@ -378,11 +378,17 @@ Assembly Definitions (asmdef) — Unity-вский способ разбиват
 
 Клик по `DrinkitGame.Tests.EditMode.asmdef` → в Inspector:
 - `Name`: `DrinkitGame.Tests.EditMode` (должно совпадать с именем файла)
-- `Assembly Definition References`: жми `+` и добавь `DrinkitGame` (выбери из списка)
-- `Platforms` → `Include Platforms`: убери галочку с `Any Platform`, затем оставь галочку **только на `Editor`** (это значит "сборка работает только в Editor — для Edit Mode тестов")
+- `Assembly Definition References` — это ключевая часть. Жми `+` **три раза** и добавь по очереди:
+  - `DrinkitGame` (даст доступ к игровому коду из тестов)
+  - `UnityEngine.TestRunner` (NUnit-атрибуты и Test API)
+  - `UnityEditor.TestRunner` (Edit Mode integration)
+
+  Эти три ссылки превращают обычную asmdef в test-сборку, видимую в Test Runner.
+- `Platforms` → `Include Platforms`: убери галочку с `Any Platform`, затем оставь галочку **только на `Editor`** (Edit Mode тесты работают в Editor)
 - `Override References`: оставь без галочки
-- Прокрути вниз до `Unity References` → поставь галочку `Test Assemblies` (это разрешает использовать NUnit и Unity TestTools)
 - Жми `Apply` внизу инспектора
+
+Если в выпадающем списке Assembly Definition References нет `UnityEngine.TestRunner` — значит пакет Test Framework не активен. Проверь `Window → Package Manager → In Project` → должен быть `Test Framework` 1.1.33+.
 
 - [ ] **Step 3: Проверить что в Test Runner появилась пустая тест-сборка**
 
