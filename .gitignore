@@ -1,2 +1,53 @@
+# Brainstorm scratch
 .superpowers/
 .DS_Store
+
+# === Unity ===
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+
+# Visual Studio / Rider IDE caches
+.vs/
+.idea/
+*.csproj
+*.unityproj
+*.sln
+*.suo
+*.tmp
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+
+# Unity3D generated meta files
+*.pidb.meta
+*.pdb.meta
+*.mdb.meta
+
+# Crashlytics generated file
+crashlytics-build.properties
+
+# Asset meta data should only be ignored when the corresponding asset is also ignored
+!/[Aa]ssets/**/*.meta
+
+# Builds
+*.apk
+*.aab
+*.unitypackage
+*.app
+
+# Crashlogs
+sysinfo.txt
+
+# WebGL build output (we'll commit only when we want to share builds)
+[Ww]eb[Gg][Ll][_-]*/
