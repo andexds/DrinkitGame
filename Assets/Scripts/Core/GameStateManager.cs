@@ -11,6 +11,9 @@ namespace DrinkitGame.Core
         [Header("Content")]
         [Tooltip("Корневой GameContent.asset со всеми SO-данными.")]
         public GameContent content;
+        
+        public static GameStateManager Instance { get; private set; }
+
 
         // Открытые ссылки на сервисы (UI будет их подписывать в Phase 4).
         public GameState State { get; private set; }
@@ -25,6 +28,13 @@ namespace DrinkitGame.Core
 
         private void Awake()
         {
+            if (Instance != null && Instance != this)
+            {
+                Destroy(gameObject);
+                return;
+            }
+            Instance = this;
+
             if (content == null)
             {
                 Debug.LogError("[GameStateManager] GameContent не назначен в инспекторе!");
@@ -62,6 +72,11 @@ namespace DrinkitGame.Core
 
             var goal = GoalTracker.CurrentGoal();
             Debug.Log($"[GoalTracker] {goal.Description} — {goal.ProgressLabel}");
+        }
+
+        private void OnDestroy()
+        {
+            if (Instance == this) Instance = null;
         }
 
         private GameState CreateFreshState()
