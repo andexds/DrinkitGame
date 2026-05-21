@@ -53,7 +53,7 @@ UI-контроллеры должны легко находить менедж�
 
 ```
 
-В конце `Awake` (после `Debug.Log`'ов), и в новом методе `OnDestroy` добавь сброс:
+Добавь **отдельный** метод `OnDestroy` — он должен быть **рядом с** `Awake`, не внутри него. Найди закрывающую `}` метода `Awake` (после двух последних `Debug.Log` вызовов) и **после неё** вставь новый метод:
 
 ```csharp
         private void OnDestroy()
@@ -61,6 +61,31 @@ UI-контроллеры должны легко находить менедж�
             if (Instance == this) Instance = null;
         }
 ```
+
+Проверь что структура файла такая (упрощённо):
+```csharp
+public class GameStateManager : MonoBehaviour
+{
+    // поля...
+    public static GameStateManager Instance { get; private set; }
+    // ...
+
+    private void Awake()
+    {
+        // ... всё тело Awake ...
+    }   // ← закрывающая } метода Awake
+
+    private void OnDestroy()
+    {
+        if (Instance == this) Instance = null;
+    }
+
+    private GameState CreateFreshState() { ... }
+    public void ResetProgress() { ... }
+}
+```
+
+Если оставишь `OnDestroy` внутри `Awake` — получишь ошибку компиляции `CS0106: The modifier 'private' is not valid for this item` (C# не разрешает private методы внутри методов).
 
 - [ ] **Step 2: Дождаться компиляции (Console чистая)**
 
