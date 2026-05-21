@@ -301,9 +301,18 @@ namespace DrinkitGame.Data
 }
 ```
 
-- [ ] **Step 2: Дождаться компиляции (опять Console чистая)**
+- [ ] **Step 2: Дождаться компиляции**
+
+В Console **ожидаемо появятся 2 ошибки** вида:
+```
+The type or namespace name 'RecipeDefinition' could not be found
+```
+
+Это потому что `MachineTierDefinition` ссылается на `RecipeDefinition` (для квестов), а его мы создадим в Task 5. Cross-reference нормален для Unity — компилятор разрешит его, когда оба файла появятся. **Просто переходи к Task 5**, ошибки исчезнут после его компиляции.
 
 - [ ] **Step 3: Commit**
+
+Можно коммитить даже с временно сломанной компиляцией — файлы корректны, ошибки только из-за порядка задач:
 
 ```bash
 git add Assets/Scripts/Data && git commit -m "feat(data): MachineTierDefinition ScriptableObject (3 tiers)"
