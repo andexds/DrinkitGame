@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1a565a9f770754c8380dd65e96b899e7, type: 3}
   m_Name: Wheel_Coins200
   m_EditorClassIdentifier: 
-  displayLabel: 
+  displayLabel: "200 \u20BD"
   icon: {fileID: 0}
-  probabilityPercent: 0
+  probabilityPercent: 18
   prizeType: 0
-  coinsAmount: 0
+  coinsAmount: 200
   packProduct: {fileID: 0}
   packQuantity: 0

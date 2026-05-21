@@ -12,11 +12,46 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 77bf09e49dd9b46a89af91b383f884cf, type: 3}
   m_Name: GameContent
   m_EditorClassIdentifier: 
-  products: []
-  machineTiers: []
-  recipes: []
-  wheelSectors: []
-  starterRecipe: {fileID: 0}
-  starterMachineTier: {fileID: 0}
+  products:
+  - {fileID: 11400000, guid: 579cd3059296d4d02935e9eb08b05a77, type: 2}
+  - {fileID: 11400000, guid: f64efe530e43f44ec8ace79f98afabf9, type: 2}
+  - {fileID: 11400000, guid: 9a6b67712770e4d9f826d686fd8f6b9e, type: 2}
+  - {fileID: 11400000, guid: 4adcda5efb14e49c4a9ce844cd73c0fe, type: 2}
+  - {fileID: 11400000, guid: b04294b19e91b4e29b5a5e5ea6433fe2, type: 2}
+  - {fileID: 11400000, guid: 94f3d711a8422422a9285a12984ec8f6, type: 2}
+  - {fileID: 11400000, guid: b157cae4ffeca423d86a0ded654527ca, type: 2}
+  - {fileID: 11400000, guid: d1fd00f1d45c9456fb49d81cde4013d0, type: 2}
+  - {fileID: 11400000, guid: 91ec75c3965954794ab96ec9fbfed25a, type: 2}
+  - {fileID: 11400000, guid: 3f7454f8117cf447f921fccb93e38185, type: 2}
+  - {fileID: 11400000, guid: d171b15aa3d6546b99fd5224d664ab88, type: 2}
+  - {fileID: 11400000, guid: beee985e4eea94f3a858908aacc83135, type: 2}
+  - {fileID: 11400000, guid: fd31db3d093994df0adeb6ec78f51eb5, type: 2}
+  - {fileID: 11400000, guid: c703446ddda844365b13c3bbc7a4c714, type: 2}
+  - {fileID: 11400000, guid: f9aa4152bd3c94a1f95625b7a0c76f37, type: 2}
+  machineTiers:
+  - {fileID: 11400000, guid: ffd9b659efd75467499f5eab32b5c918, type: 2}
+  - {fileID: 11400000, guid: 91023e39e129a4fa18a0b58f18e92a91, type: 2}
+  - {fileID: 11400000, guid: 4ae413e330e704bb3879e1d0ab036b91, type: 2}
+  recipes:
+  - {fileID: 11400000, guid: 3b0bf2792f58d4c7bb6331d606922cf2, type: 2}
+  - {fileID: 11400000, guid: 0e2aa445d08214966a2855dd6329ab99, type: 2}
+  - {fileID: 11400000, guid: 542fbaedde4fc450689f7b0191d5eb17, type: 2}
+  - {fileID: 11400000, guid: d44bc59392323404090250a33315d7d8, type: 2}
+  - {fileID: 11400000, guid: 8322d00527fe94cbdad9f425e3b6f049, type: 2}
+  - {fileID: 11400000, guid: 57c3c531fb8f9477f8d51b7fdc7788a5, type: 2}
+  - {fileID: 11400000, guid: 8280690b12e6a4bfc851f793e5446739, type: 2}
+  - {fileID: 11400000, guid: b1fe6de4d307943149ae080ccb56300c, type: 2}
+  wheelSectors:
+  - {fileID: 11400000, guid: 75a908d5618524a41891884b0577e868, type: 2}
+  - {fileID: 11400000, guid: 90389d042aa7640deb97c01033ded16d, type: 2}
+  - {fileID: 11400000, guid: 065e103878d6e4f5a985ecb6e60a57df, type: 2}
+  - {fileID: 11400000, guid: d580e44884cb1456bbee6864ce25f835, type: 2}
+  - {fileID: 11400000, guid: 9e6ee50bb8048490d945804bb1a2edf6, type: 2}
+  - {fileID: 11400000, guid: d1db9fd5d449743bd8b6ca2f13be018f, type: 2}
+  - {fileID: 11400000, guid: 73b53e964d5df487a97fc51a2bd7265f, type: 2}
+  - {fileID: 11400000, guid: 4553db0536b824af49e572284b695edb, type: 2}
+  - {fileID: 11400000, guid: 9355de397b6924989a829118e569d321, type: 2}
+  starterRecipe: {fileID: 11400000, guid: d44bc59392323404090250a33315d7d8, type: 2}
+  starterMachineTier: {fileID: 11400000, guid: ffd9b659efd75467499f5eab32b5c918, type: 2}
   starterBalance: 0
   starterBeansStock: 10

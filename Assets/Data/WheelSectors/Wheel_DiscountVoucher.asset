@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1a565a9f770754c8380dd65e96b899e7, type: 3}
   m_Name: Wheel_DiscountVoucher
   m_EditorClassIdentifier: 
-  displayLabel: 
+  displayLabel: "\u221250% \u043D\u0430 \u0440\u0435\u0446\u0435\u043F\u0442"
   icon: {fileID: 0}
-  probabilityPercent: 0
-  prizeType: 0
+  probabilityPercent: 7
+  prizeType: 2
   coinsAmount: 0
   packProduct: {fileID: 0}
   packQuantity: 0

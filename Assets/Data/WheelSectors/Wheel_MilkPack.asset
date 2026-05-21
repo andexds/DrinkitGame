@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1a565a9f770754c8380dd65e96b899e7, type: 3}
   m_Name: Wheel_MilkPack
   m_EditorClassIdentifier: 
-  displayLabel: 
+  displayLabel: "\u041C\u043E\u043B\u043E\u043A\u043E \xD710"
   icon: {fileID: 0}
-  probabilityPercent: 0
-  prizeType: 0
+  probabilityPercent: 14
+  prizeType: 1
   coinsAmount: 0
-  packProduct: {fileID: 0}
-  packQuantity: 0
+  packProduct: {fileID: 11400000, guid: d171b15aa3d6546b99fd5224d664ab88, type: 2}
+  packQuantity: 10

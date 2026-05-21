@@ -12,18 +12,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fed7321583d6d4b8b8373f0cc5760a2d, type: 3}
   m_Name: Recipe_Cacao
   m_EditorClassIdentifier: 
-  id: 
-  displayName: 
+  id: cacao
+  displayName: "\u041A\u0430\u043A\u0430\u043E"
   icon: {fileID: 0}
-  family: 0
-  basePrice: 0
-  recipePurchasePrice: 0
-  requiredMachineTier: {fileID: 0}
-  fixedIngredients: []
-  needsMilk: 0
+  family: 7
+  basePrice: 270
+  recipePurchasePrice: 400
+  requiredMachineTier: {fileID: 11400000, guid: 91023e39e129a4fa18a0b58f18e92a91, type: 2}
+  fixedIngredients:
+  - product: {fileID: 11400000, guid: 9a6b67712770e4d9f826d686fd8f6b9e, type: 2}
+    amount: 1
+  needsMilk: 1
   needsCream: 0
   canHaveSyrup: 0
-  compatibleToppings: []
+  compatibleToppings:
+  - {fileID: 11400000, guid: b157cae4ffeca423d86a0ded654527ca, type: 2}
   canBeToGo: 1
   unlockQuestTargetRecipe: {fileID: 0}
   unlockQuestTargetCount: 0

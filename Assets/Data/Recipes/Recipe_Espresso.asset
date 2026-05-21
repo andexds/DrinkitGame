@@ -12,18 +12,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fed7321583d6d4b8b8373f0cc5760a2d, type: 3}
   m_Name: Recipe_Espresso
   m_EditorClassIdentifier: 
-  id: 
-  displayName: 
+  id: espresso
+  displayName: "\u042D\u0441\u043F\u0440\u0435\u0441\u0441\u043E"
   icon: {fileID: 0}
   family: 0
-  basePrice: 0
+  basePrice: 130
   recipePurchasePrice: 0
-  requiredMachineTier: {fileID: 0}
-  fixedIngredients: []
+  requiredMachineTier: {fileID: 11400000, guid: ffd9b659efd75467499f5eab32b5c918, type: 2}
+  fixedIngredients:
+  - product: {fileID: 11400000, guid: 579cd3059296d4d02935e9eb08b05a77, type: 2}
+    amount: 1
   needsMilk: 0
   needsCream: 0
-  canHaveSyrup: 0
-  compatibleToppings: []
+  canHaveSyrup: 1
+  compatibleToppings:
+  - {fileID: 11400000, guid: 4adcda5efb14e49c4a9ce844cd73c0fe, type: 2}
   canBeToGo: 1
   unlockQuestTargetRecipe: {fileID: 0}
   unlockQuestTargetCount: 0

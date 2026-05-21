@@ -12,15 +12,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fed7321583d6d4b8b8373f0cc5760a2d, type: 3}
   m_Name: Recipe_Matcha
   m_EditorClassIdentifier: 
-  id: 
-  displayName: 
+  id: matcha
+  displayName: "\u041C\u0430\u0442\u0447\u0430"
   icon: {fileID: 0}
-  family: 0
-  basePrice: 0
-  recipePurchasePrice: 0
-  requiredMachineTier: {fileID: 0}
-  fixedIngredients: []
-  needsMilk: 0
+  family: 6
+  basePrice: 330
+  recipePurchasePrice: 1500
+  requiredMachineTier: {fileID: 11400000, guid: 4ae413e330e704bb3879e1d0ab036b91, type: 2}
+  fixedIngredients:
+  - product: {fileID: 11400000, guid: d1fd00f1d45c9456fb49d81cde4013d0, type: 2}
+    amount: 1
+  needsMilk: 1
   needsCream: 0
   canHaveSyrup: 0
   compatibleToppings: []

@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 133437f67cf8d4e7296a3e7a5f0e1e0b, type: 3}
   m_Name: Product_MilkAlmond
   m_EditorClassIdentifier: 
-  id: 
-  displayName: 
+  id: milk_almond
+  displayName: "\u041C\u043E\u043B\u043E\u043A\u043E \u043C\u0438\u043D\u0434\u0430\u043B\u044C\u043D\u043E\u0435"
   icon: {fileID: 0}
-  category: 0
-  isPremiumMilk: 0
-  purchasePrice: 0
+  category: 1
+  isPremiumMilk: 1
+  purchasePrice: 70
   sellMarkup: 0

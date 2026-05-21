@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8a4fe25c7f6ba45e68e9e86f79466e85, type: 3}
   m_Name: Machine_T1
   m_EditorClassIdentifier: 
-  tierIndex: 0
-  displayName: 
+  tierIndex: 1
+  displayName: "\u0421\u0442\u0430\u0440\u0435\u043D\u044C\u043A\u0430\u044F"
   icon: {fileID: 0}
   purchasePrice: 0
   questDescription: 
@@ -21,8 +21,8 @@ MonoBehaviour:
   questTargetCount1: 0
   questTargetRecipe2: {fileID: 0}
   questTargetCount2: 0
-  grindingZoneWidth: 0.25
-  milkSteamingZoneWidth: 0.25
-  pourOverZoneWidth: 0.25
+  grindingZoneWidth: 0.15
+  milkSteamingZoneWidth: 0.15
+  pourOverZoneWidth: 0.15
   extractionTimeSeconds: 3
   checkBonusPercent: 0
