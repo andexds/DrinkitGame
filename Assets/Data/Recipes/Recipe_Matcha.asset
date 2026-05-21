@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fed7321583d6d4b8b8373f0cc5760a2d, type: 3}
+  m_Name: Recipe_Matcha
+  m_EditorClassIdentifier: 
+  id: 
+  displayName: 
+  icon: {fileID: 0}
+  family: 0
+  basePrice: 0
+  recipePurchasePrice: 0
+  requiredMachineTier: {fileID: 0}
+  fixedIngredients: []
+  needsMilk: 0
+  needsCream: 0
+  canHaveSyrup: 0
+  compatibleToppings: []
+  canBeToGo: 1
+  unlockQuestTargetRecipe: {fileID: 0}
+  unlockQuestTargetCount: 0
+  unlockQuestDescription: 
