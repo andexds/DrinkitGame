@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8a4fe25c7f6ba45e68e9e86f79466e85, type: 3}
+  m_Name: Machine_T3
+  m_EditorClassIdentifier: 
+  tierIndex: 0
+  displayName: 
+  icon: {fileID: 0}
+  purchasePrice: 0
+  questDescription: 
+  questTargetRecipe1: {fileID: 0}
+  questTargetCount1: 0
+  questTargetRecipe2: {fileID: 0}
+  questTargetCount2: 0
+  grindingZoneWidth: 0.25
+  milkSteamingZoneWidth: 0.25
+  pourOverZoneWidth: 0.25
+  extractionTimeSeconds: 3
+  checkBonusPercent: 0
