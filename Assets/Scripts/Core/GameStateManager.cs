@@ -25,6 +25,8 @@ namespace DrinkitGame.Core
         public MachineService Machine { get; private set; }
         public GoalTrackerService GoalTracker { get; private set; }
         public SaveService Save { get; private set; }
+        public OrderGenerator OrderGenerator { get; private set; }
+        public OrderService Orders { get; private set; }
 
         private void Awake()
         {
@@ -51,6 +53,8 @@ namespace DrinkitGame.Core
             Recipes = new RecipeService(State, content, Economy, Quests);
             Machine = new MachineService(State, content, Economy, Quests);
             GoalTracker = new GoalTrackerService(State, content, Economy, Quests, Machine);
+            OrderGenerator = new OrderGenerator(State, content, Inventory);
+            Orders = new OrderService(OrderGenerator, Reputation);
 
             // Гарантируем что стартовый рецепт открыт (даже если в сейве пропал почему-то)
             Recipes.EnsureStarterUnlocked();
@@ -62,6 +66,8 @@ namespace DrinkitGame.Core
             Quests.CountChanged += (_, __) => Save.Save(State);
             Recipes.RecipeUnlocked += _ => Save.Save(State);
             Machine.Upgraded += _ => Save.Save(State);
+            Orders.OrderSpawned += _ => Save.Save(State);
+            Orders.OrderAbandoned += _ => Save.Save(State);
 
             Debug.Log(
                 $"[GameStateManager] Start. " +
