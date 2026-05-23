@@ -61,16 +61,11 @@ namespace DrinkitGame.UI
 
         private void OnSlotTapped(int slotIndex)
         {
-            var order = _gsm.Orders.GetSlot(slotIndex);
+            var order = _gsm.Orders.TakeFromSlot(slotIndex);
             if (order == null) return;
 
-            // На Phase 5 — просто лог; в Phase 6 откроем Cooking screen
-            Debug.Log($"[Order tapped] slot={slotIndex} recipe={order.recipe.id} " +
-                      $"milk={order.milk?.id ?? "-"} syrup={order.syrup?.id ?? "-"} " +
-                      $"topping={order.topping?.id ?? "-"} togo={order.isToGo}");
-
-            // Снимаем заказ со слота, чтобы освободить
-            _gsm.Orders.TakeFromSlot(slotIndex);
+            Debug.Log($"[Order tapped] Открываем cooking: {order.recipe.id}");
+            UIRouter.Instance.OpenCooking(order);
         }
     }
 }
