@@ -27,6 +27,7 @@ namespace DrinkitGame.Core
         public SaveService Save { get; private set; }
         public OrderGenerator OrderGenerator { get; private set; }
         public OrderService Orders { get; private set; }
+        public OrderResolutionService OrderResolution { get; private set; }
 
         private void Awake()
         {
@@ -55,6 +56,7 @@ namespace DrinkitGame.Core
             GoalTracker = new GoalTrackerService(State, content, Economy, Quests, Machine);
             OrderGenerator = new OrderGenerator(State, content, Inventory);
             Orders = new OrderService(OrderGenerator, Reputation);
+            OrderResolution = new OrderResolutionService(State, Economy, Inventory, Quests, Machine);
 
             // Гарантируем что стартовый рецепт открыт (даже если в сейве пропал почему-то)
             Recipes.EnsureStarterUnlocked();
