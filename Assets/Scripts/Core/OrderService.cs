@@ -119,5 +119,17 @@ namespace DrinkitGame.Core
         {
             return (float)(_rng.NextDouble() * (SpawnDelayMax - SpawnDelayMin) + SpawnDelayMin);
         }
+
+        /// Положить заказ обратно в слот (например, если игрок отменил готовку).
+        /// Возвращает true если получилось (слот свободен).
+        public bool ReinsertOrder(Order order)
+        {
+            if (order == null) return false;
+            if (order.slotIndex < 0 || order.slotIndex >= SlotCount) return false;
+            if (_slots[order.slotIndex] != null) return false;
+            _slots[order.slotIndex] = order;
+            OrderSpawned?.Invoke(order);
+            return true;
+        }
     }
 }
