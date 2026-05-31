@@ -14,10 +14,13 @@ namespace DrinkitGame.UI
         public GameObject cookingScreenPanel;
         public GameObject orderResultPopup;
         public GameObject storeScreenPanel;
+        public GameObject wheelScreenPanel;
 
         [Header("Optional cooking controller")]
         public CookingScreenController cookingController;
         public OrderResultPopupController resultPopupController;
+
+        
 
         private void Awake()
         {
@@ -45,6 +48,7 @@ namespace DrinkitGame.UI
             SetActive(cookingScreenPanel, false);
             SetActive(orderResultPopup, false);
             SetActive(storeScreenPanel, false);
+            SetActive(wheelScreenPanel, false);
         }
 
         public void OpenCooking(Order order)
@@ -54,6 +58,7 @@ namespace DrinkitGame.UI
             SetActive(cookingScreenPanel, true);
             SetActive(orderResultPopup, false);
             SetActive(storeScreenPanel, false);
+            SetActive(wheelScreenPanel, false);
         }
 
         public void ShowOrderResult(OrderResolution resolution)
@@ -76,6 +81,15 @@ namespace DrinkitGame.UI
             SetActive(mainScreenPanel, false);
             SetActive(cookingScreenPanel, false);
             SetActive(storeScreenPanel, true);
+            SetActive(orderResultPopup, false);
+            SetActive(wheelScreenPanel, false);
+        }
+        public void OpenWheel()
+        {
+            SetActive(mainScreenPanel, false);
+            SetActive(cookingScreenPanel, false);
+            SetActive(storeScreenPanel, false);
+            SetActive(wheelScreenPanel, true);
             SetActive(orderResultPopup, false);
         }
     }
