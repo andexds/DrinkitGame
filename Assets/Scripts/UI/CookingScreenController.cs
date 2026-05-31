@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using System.Text;
+using DrinkitGame.Cooking;
 using DrinkitGame.Core;
 using TMPro;
 using UnityEngine;
@@ -6,46 +8,50 @@ using UnityEngine.UI;
 
 namespace DrinkitGame.UI
 {
-    /// Контроллер mock-cooking экрана: показывает детали заказа + кнопка "Выдать".
-    /// В Phase 8 будет полноценный пошаговый flow.
+    /// Контроллер экрана готовки: ведёт игрока по шагам CookingFlow.
+    /// В 8a все шаги (включая мини-игры) — просто тап для перехода дальше, quality=100.
+    /// В 8b мини-игры подменим на реальные оверлеи.
     public class CookingScreenController : MonoBehaviour
     {
         [Header("Labels")]
-        public TMP_Text recipeLabel;
-        public TMP_Text modifiersLabel;
+        public TMP_Text orderSummaryLabel;     // "Капучино на овсяном · с собой"
+        public TMP_Text hintLabel;             // "Тапни кофемолку"
+        public TMP_Text progressLabel;         // "Шаг 3 из 7"
         public TMP_Text patienceLabel;
 
         [Header("Buttons")]
-        public Button serveButton;
+        public Button advanceButton;
+        public TMP_Text advanceButtonLabel;
         public Button cancelButton;
 
         private Order _order;
+        private List<CookingStep> _steps;
+        private int _currentIndex;
+        private float _qualitySum;
+        private int _qualityCount;
 
         private void Awake()
         {
-            if (serveButton != null) serveButton.onClick.AddListener(OnServe);
+            if (advanceButton != null) advanceButton.onClick.AddListener(OnAdvance);
             if (cancelButton != null) cancelButton.onClick.AddListener(OnCancel);
         }
 
-        /// Привязать заказ к экрану (вызывается UIRouter при открытии).
         public void Bind(Order order)
         {
             _order = order;
-            if (order == null) return;
+            _steps = CookingFlow.GenerateSteps(order);
+            _currentIndex = 0;
+            _qualitySum = 0f;
+            _qualityCount = 0;
 
-            if (recipeLabel != null)
-                recipeLabel.text = $"{order.recipe.displayName} · {(order.isToGo ? "с собой" : "тут")}";
+            if (orderSummaryLabel != null)
+                orderSummaryLabel.text = BuildSummary(order);
 
-            if (modifiersLabel != null)
-                modifiersLabel.text = BuildModifiersString(order);
-
-            if (patienceLabel != null)
-                patienceLabel.text = $"Терпение: {FormatTime(order.remainingPatience)}";
+            ShowCurrentStep();
         }
 
         private void Update()
         {
-            // Обновляем таймер терпения, пока экран открыт (заказ ушёл из слота, но мы держим референс)
             if (_order != null && patienceLabel != null)
             {
                 _order.remainingPatience -= Time.deltaTime;
@@ -54,21 +60,37 @@ namespace DrinkitGame.UI
             }
         }
 
-        private void OnServe()
+        private void ShowCurrentStep()
         {
-            if (_order == null) return;
-            var gsm = GameStateManager.Instance;
-            if (gsm == null) return;
+            if (_steps == null || _currentIndex >= _steps.Count) return;
+            var step = _steps[_currentIndex];
+            if (hintLabel != null) hintLabel.text = step.hint;
+            if (progressLabel != null) progressLabel.text = $"Шаг {_currentIndex + 1} из {_steps.Count}";
+            if (advanceButtonLabel != null)
+                advanceButtonLabel.text = step.type == CookingStepType.Deliver ? "Выдать" : "Дальше";
+        }
 
-            // Мок-выдача: quality = 100, elapsedSeconds = Patience - remainingPatience
-            float elapsed = OrderService.Patience - _order.remainingPatience;
-            var resolution = gsm.OrderResolution.Complete(_order, quality: 100f, elapsedSeconds: elapsed);
+        private void OnAdvance()
+        {
+            if (_steps == null || _currentIndex >= _steps.Count) return;
+            var step = _steps[_currentIndex];
 
-            UIRouter.Instance.ShowOrderResult(resolution);
-            // Сразу возвращаемся в Main (поп-ап рендерится поверх)
-            UIRouter.Instance.ShowMain();
-            UIRouter.Instance.ShowOrderResult(resolution); // показываем поверх Main
-            _order = null;
+            // 8a: мини-игры заглушены — Quality = 100
+            if (step.isMiniGame)
+            {
+                _qualitySum += 100f;
+                _qualityCount += 1;
+            }
+
+            _currentIndex++;
+            if (_currentIndex >= _steps.Count)
+            {
+                CompleteOrder();
+            }
+            else
+            {
+                ShowCurrentStep();
+            }
         }
 
         private void OnCancel()
@@ -78,30 +100,44 @@ namespace DrinkitGame.UI
                 UIRouter.Instance.ShowMain();
                 return;
             }
-            // Возвращаем заказ обратно в слот: создаём аналогичный заказ в OrderService.
-            // Простой путь: дать ему освободить слот (мы уже забрали), и кладём обратно.
+            // Вернуть заказ обратно в слот
             var gsm = GameStateManager.Instance;
-            gsm.Orders.ReinsertOrder(_order); // нужно добавить такой метод в OrderService
-
+            gsm.Orders.ReinsertOrder(_order);
             UIRouter.Instance.ShowMain();
             _order = null;
+        }
+
+        private void CompleteOrder()
+        {
+            if (_order == null) return;
+            var gsm = GameStateManager.Instance;
+
+            float quality = _qualityCount > 0 ? _qualitySum / _qualityCount : 100f;
+            float elapsed = OrderService.Patience - _order.remainingPatience;
+
+            var resolution = gsm.OrderResolution.Complete(_order, quality, elapsed);
+
+            UIRouter.Instance.ShowMain();
+            UIRouter.Instance.ShowOrderResult(resolution);
+            _order = null;
+        }
+
+        private static string BuildSummary(Order order)
+        {
+            var sb = new StringBuilder();
+            sb.Append(order.recipe.displayName);
+            if (order.milk != null) sb.Append(" · ").Append(order.milk.displayName.ToLower());
+            if (order.cream != null) sb.Append(" · сливки");
+            if (order.syrup != null) sb.Append(" · ").Append(order.syrup.displayName.ToLower());
+            if (order.topping != null) sb.Append(" · ").Append(order.topping.displayName.ToLower());
+            sb.Append(" · ").Append(order.isToGo ? "с собой" : "тут");
+            return sb.ToString();
         }
 
         private static string FormatTime(float seconds)
         {
             int t = Mathf.Max(0, Mathf.CeilToInt(seconds));
             return $"{t / 60}:{(t % 60):00}";
-        }
-
-        private static string BuildModifiersString(Order order)
-        {
-            var sb = new StringBuilder();
-            if (order.milk != null) sb.Append("на ").Append(order.milk.displayName.ToLower()).Append(" · ");
-            if (order.cream != null) sb.Append("со сливками · ");
-            if (order.syrup != null) sb.Append(order.syrup.displayName.ToLower()).Append(" · ");
-            if (order.topping != null) sb.Append(order.topping.displayName.ToLower()).Append(" · ");
-            sb.Append(order.isToGo ? "с собой" : "тут");
-            return sb.ToString();
         }
     }
 }
