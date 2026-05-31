@@ -119,5 +119,15 @@ namespace DrinkitGame.Core
             State = CreateFreshState();
             Debug.Log("[GameStateManager] Прогресс сброшен.");
         }
+         /// Удобный доступ к каталогам контента (UI).
+        public System.Collections.Generic.IEnumerable<DrinkitGame.Data.RecipeDefinition> GameContent_Recipes()
+        {
+            return content != null ? (System.Collections.Generic.IEnumerable<DrinkitGame.Data.RecipeDefinition>)content.recipes : System.Array.Empty<DrinkitGame.Data.RecipeDefinition>();
+        }
+
+        public System.Collections.Generic.IEnumerable<DrinkitGame.Data.ProductDefinition> GameContent_Products()
+        {
+            return content != null ? (System.Collections.Generic.IEnumerable<DrinkitGame.Data.ProductDefinition>)content.products : System.Array.Empty<DrinkitGame.Data.ProductDefinition>();
+        }
     }
 }
