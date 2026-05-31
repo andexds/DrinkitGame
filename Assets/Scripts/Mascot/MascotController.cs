@@ -73,6 +73,9 @@ namespace DrinkitGame.Mascot
         {
             SetEmotion(emotion);
             if (speechBubbleRoot == null || speechText == null) return;
+            // Если маскот скрыт (мы не на главном экране) — не показываем пузырь и не
+            // запускаем корутину: StartCoroutine на неактивном GameObject бросает ошибку.
+            if (!gameObject.activeInHierarchy) return;
             speechText.text = text;
             speechBubbleRoot.SetActive(true);
 
@@ -145,16 +148,19 @@ namespace DrinkitGame.Mascot
 
         private static string LabelForEmotion(MascotEmotion e)
         {
+            // Плейсхолдер-текст внутри квадрата маскота. Только ASCII/кириллица — кастомный
+            // SDF-шрифт не содержит эмодзи/стрелок (иначе варнинг "character not found").
+            // Заменится спрайтами в Phase 12.
             return e switch
             {
-                MascotEmotion.Happy => "🐳 :)",
-                MascotEmotion.Excited => "🐳 !",
-                MascotEmotion.Welcoming => "🐳 ♥",
-                MascotEmotion.Sad => "🐳 :(",
-                MascotEmotion.Disappointed => "🐳 :|",
-                MascotEmotion.Pointing => "🐳 →",
-                MascotEmotion.Sleeping => "🐳 zZz",
-                _ => "🐳"
+                MascotEmotion.Happy => ":)",
+                MascotEmotion.Excited => "!",
+                MascotEmotion.Welcoming => "<3",
+                MascotEmotion.Sad => ":(",
+                MascotEmotion.Disappointed => ":|",
+                MascotEmotion.Pointing => "->",
+                MascotEmotion.Sleeping => "zzz",
+                _ => "Дринчик"
             };
         }
     }

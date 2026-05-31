@@ -22,13 +22,16 @@ namespace DrinkitGame.UI
             _gsm.Orders.OrderRemoved += OnOrderRemoved;
             _gsm.Orders.SlotPatienceTick += OnPatienceTick;
 
-            // Обработчики тапов
-            foreach (var slot in slots)
-                if (slot != null) slot.Tapped += OnSlotTapped;
-
-            // Изначальное состояние (на случай восстановления из сейва или просто пустое)
+            // Индекс слота назначаем ПО ПОЗИЦИИ В МАССИВЕ — авторитетно, чтобы не зависеть
+            // от ручной настройки slotIndex в инспекторе (частый источник багов: все были 0).
+            // Здесь же: подписка на тап + изначальный Bind.
             for (int i = 0; i < slots.Length; i++)
-                if (slots[i] != null) slots[i].Bind(_gsm.Orders.GetSlot(i));
+            {
+                if (slots[i] == null) continue;
+                slots[i].slotIndex = i;
+                slots[i].Tapped += OnSlotTapped;
+                slots[i].Bind(_gsm.Orders.GetSlot(i));
+            }
         }
 
         private void OnDestroy()
