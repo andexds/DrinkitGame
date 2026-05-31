@@ -197,7 +197,7 @@ namespace DrinkitGame.Core
 }
 ```
 
-> ⚠️ Маленький костыль на `cup_takeaway`: создаём фейковый `ProductDefinition` только для передачи `id`. Это работает, потому что `InventoryService.TryConsume(string, int)` принимает строку. В Phase 11 можно перенести cup-product ссылку в GameContent.
+> ℹ️ Стакан «с собой» списываем напрямую по строковому id `"cup_takeaway"` через `InventoryService.TryConsume(string, int)` — без создания временных `ScriptableObject`. У нас один тип стакана, id стабильный.
 
 - [ ] **Step 3: Тесты — `Assets/Tests/EditMode/OrderResolutionServiceTests.cs`**
 
