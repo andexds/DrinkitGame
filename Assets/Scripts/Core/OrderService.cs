@@ -20,6 +20,10 @@ namespace DrinkitGame.Core
         private float _spawnTimer;
         private bool _spawnTimerActive;
 
+        /// Когда false — новые заказы не появляются (например, во время онбординга
+        /// до шага «жди клиента»). Тик терпения для уже существующих заказов продолжается.
+        public bool SpawnEnabled = true;
+
         public event Action<Order> OrderSpawned;
         public event Action<Order> OrderAbandoned;
         public event Action<int> OrderRemoved;    // slot освобождён по любой причине
@@ -79,6 +83,12 @@ namespace DrinkitGame.Core
             }
 
             // 2. Спавн нового, если есть свободный слот
+            if (!SpawnEnabled)
+            {
+                _spawnTimerActive = false;
+                return;
+            }
+
             int freeIndex = FindFreeSlot();
             if (freeIndex < 0)
             {
@@ -118,6 +128,14 @@ namespace DrinkitGame.Core
         private float NextSpawnDelay()
         {
             return (float)(_rng.NextDouble() * (SpawnDelayMax - SpawnDelayMin) + SpawnDelayMin);
+        }
+
+        /// Попросить заспавнить заказ как можно скорее (на ближайшем тике, если есть свободный слот
+        /// и SpawnEnabled). Используется онбордингом, чтобы первый клиент пришёл сразу.
+        public void RequestImmediateSpawn()
+        {
+            _spawnTimer = 0f;
+            _spawnTimerActive = true;
         }
 
         /// Положить заказ обратно в слот (например, если игрок отменил готовку).
@@ -163,6 +181,10 @@ namespace DrinkitGame.Core
             {
                 if (string.IsNullOrEmpty(p.recipeId)) continue;
                 if (p.slotIndex < 0 || p.slotIndex >= SlotCount) continue;
+                // Защита от «грязного» сейва: не восстанавливаем заказ на рецепт,
+                // который сейчас НЕ открыт (иначе появляется matcha/капуч после сброса).
+                if (state.unlockedRecipeIds != null && !state.unlockedRecipeIds.Contains(p.recipeId))
+                    continue;
 
                 var order = new Order
                 {

@@ -106,6 +106,14 @@ namespace DrinkitGame.UI
                 return;
             }
 
+            // Дошли до шага «жди клиента» — теперь разрешаем спавн и просим первый заказ сразу,
+            // чтобы туториал не висел и пришёл ровно один клиент.
+            if (step.trigger == StepTrigger.FirstOrderSpawned && _gsm != null && _gsm.Orders != null)
+            {
+                _gsm.Orders.SpawnEnabled = true;
+                _gsm.Orders.RequestImmediateSpawn();
+            }
+
             if (textLabel != null) textLabel.text = step.text;
             if (mascot != null) mascot.Say(step.text, step.emotion);
 
@@ -158,6 +166,8 @@ namespace DrinkitGame.UI
             if (_gsm != null)
             {
                 _gsm.State.onboardingCompleted = true;
+                // Страховка: если игрок проскочил шаг «жди клиента», всё равно включаем спавн.
+                if (_gsm.Orders != null) _gsm.Orders.SpawnEnabled = true;
                 _gsm.Save.Save(_gsm.State);
             }
             gameObject.SetActive(false);

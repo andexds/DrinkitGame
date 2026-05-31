@@ -150,6 +150,22 @@ namespace DrinkitGame.Core
             if (Save != null) Save.Clear();
             Debug.Log("[GameStateManager] Сейв стёрт. Перезапусти Play для чистой игры.");
         }
+
+        /// НАДЁЖНЫЙ полный сброс: стирает сейв И перезагружает сцену, чтобы все сервисы
+        /// пересоздались со свежим стейтом. Используй ЕГО вместо Reset Progress/Onboarding —
+        /// те меняют поля, но сервисы держат старую ссылку на State, отсюда «грязный» сейв.
+        [ContextMenu("Wipe Save & Restart")]
+        public void WipeSaveAndRestart()
+        {
+            if (Save != null) Save.Clear();
+            else { PlayerPrefs.DeleteKey("DrinkitGame.Save.v1"); PlayerPrefs.Save(); }
+            var scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
+            if (scene.buildIndex >= 0)
+                UnityEngine.SceneManagement.SceneManager.LoadScene(scene.buildIndex);
+            else
+                UnityEngine.SceneManagement.SceneManager.LoadScene(scene.name);
+            Debug.Log("[GameStateManager] Полный сброс: сейв стёрт, сцена перезагружена.");
+        }
          /// Удобный доступ к каталогам контента (UI).
         public System.Collections.Generic.IEnumerable<DrinkitGame.Data.RecipeDefinition> GameContent_Recipes()
         {
