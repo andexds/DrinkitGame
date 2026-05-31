@@ -126,6 +126,20 @@ namespace DrinkitGame.Core
             State = CreateFreshState();
             Debug.Log("[GameStateManager] Прогресс сброшен. Перезапусти Play для применения.");
         }
+        [ContextMenu("Reset Onboarding Flag")]
+        public void ResetOnboardingFlag()
+        {
+            if (State != null) State.onboardingCompleted = false;
+            if (Save != null) Save.Save(State);
+            Debug.Log("[GameStateManager] Онбординг сброшен. Перезапусти Play.");
+        }
+
+        [ContextMenu("Wipe Save")]
+        public void WipeSave()
+        {
+            if (Save != null) Save.Clear();
+            Debug.Log("[GameStateManager] Сейв стёрт. Перезапусти Play для чистой игры.");
+        }
          /// Удобный доступ к каталогам контента (UI).
         public System.Collections.Generic.IEnumerable<DrinkitGame.Data.RecipeDefinition> GameContent_Recipes()
         {
