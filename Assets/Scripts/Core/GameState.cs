@@ -42,6 +42,9 @@ namespace DrinkitGame.Core
 
         [Tooltip("Сколько заказов всего успешно выдано (для накопления жетонов колеса).")]
         public int totalOrdersCompleted;
+
+        [Tooltip("Активные заказы в слотах — снимок для сохранения.")]
+        public List<PersistedOrder> persistedOrders = new();
     }
 
     /// Пара "продукт → остаток" в инвентаре.
@@ -72,5 +75,18 @@ namespace DrinkitGame.Core
             this.recipeId = recipeId;
             this.count = count;
         }
+    }
+    /// Снимок активного заказа для сохранения между сессиями (по id-шкам, без SO-ссылок).
+    [Serializable]
+    public class PersistedOrder
+    {
+        public string recipeId;
+        public string milkId;
+        public string creamId;
+        public string syrupId;
+        public string toppingId;
+        public bool isToGo;
+        public float remainingPatience;
+        public int slotIndex;
     }
 }
