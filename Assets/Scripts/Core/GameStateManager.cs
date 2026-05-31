@@ -116,12 +116,15 @@ namespace DrinkitGame.Core
             return state;
         }
 
-        /// Утилитный метод для сброса (вызывается из тестов и из debug-меню в будущем).
+        /// Утилитный метод для сброса. Доступен правым кликом по компоненту в инспекторе.
+        /// ВАЖНО: сервисы держат ссылку на старый State, поэтому после сброса
+        /// нужно выйти из Play и зайти заново — на следующем старте загрузится свежий стейт.
+        [ContextMenu("Reset Progress")]
         public void ResetProgress()
         {
             Save.Clear();
             State = CreateFreshState();
-            Debug.Log("[GameStateManager] Прогресс сброшен.");
+            Debug.Log("[GameStateManager] Прогресс сброшен. Перезапусти Play для применения.");
         }
          /// Удобный доступ к каталогам контента (UI).
         public System.Collections.Generic.IEnumerable<DrinkitGame.Data.RecipeDefinition> GameContent_Recipes()
