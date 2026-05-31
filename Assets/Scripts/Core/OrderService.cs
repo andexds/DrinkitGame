@@ -131,5 +131,68 @@ namespace DrinkitGame.Core
             OrderSpawned?.Invoke(order);
             return true;
         }
+        /// Записать текущие слоты в GameState.persistedOrders (стирая старый список).
+        public void SerializeToState(GameState state)
+        {
+            state.persistedOrders.Clear();
+            for (int i = 0; i < SlotCount; i++)
+            {
+                var order = _slots[i];
+                if (order == null) continue;
+                state.persistedOrders.Add(new PersistedOrder
+                {
+                    recipeId = order.recipe != null ? order.recipe.id : null,
+                    milkId = order.milk != null ? order.milk.id : null,
+                    creamId = order.cream != null ? order.cream.id : null,
+                    syrupId = order.syrup != null ? order.syrup.id : null,
+                    toppingId = order.topping != null ? order.topping.id : null,
+                    isToGo = order.isToGo,
+                    remainingPatience = order.remainingPatience,
+                    slotIndex = order.slotIndex
+                });
+            }
+        }
+
+        /// Восстановить заказы из снимка в GameState. Вызывается один раз после загрузки сейва.
+        public void RestoreFromState(GameState state, DrinkitGame.Data.GameContent content)
+        {
+            for (int i = 0; i < SlotCount; i++) _slots[i] = null;
+            if (state.persistedOrders == null) return;
+
+            foreach (var p in state.persistedOrders)
+            {
+                if (string.IsNullOrEmpty(p.recipeId)) continue;
+                if (p.slotIndex < 0 || p.slotIndex >= SlotCount) continue;
+
+                var order = new Order
+                {
+                    recipe = FindRecipe(content, p.recipeId),
+                    milk = FindProduct(content, p.milkId),
+                    cream = FindProduct(content, p.creamId),
+                    syrup = FindProduct(content, p.syrupId),
+                    topping = FindProduct(content, p.toppingId),
+                    isToGo = p.isToGo,
+                    remainingPatience = p.remainingPatience,
+                    slotIndex = p.slotIndex
+                };
+                if (order.recipe == null) continue; // рецепт удалили — пропустим
+                _slots[p.slotIndex] = order;
+                OrderSpawned?.Invoke(order);
+            }
+        }
+
+        private static DrinkitGame.Data.RecipeDefinition FindRecipe(DrinkitGame.Data.GameContent content, string id)
+        {
+            if (string.IsNullOrEmpty(id) || content == null) return null;
+            foreach (var r in content.recipes) if (r != null && r.id == id) return r;
+            return null;
+        }
+
+        private static DrinkitGame.Data.ProductDefinition FindProduct(DrinkitGame.Data.GameContent content, string id)
+        {
+            if (string.IsNullOrEmpty(id) || content == null) return null;
+            foreach (var p in content.products) if (p != null && p.id == id) return p;
+            return null;
+        }
     }
 }
