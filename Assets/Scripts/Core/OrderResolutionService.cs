@@ -115,22 +115,8 @@ namespace DrinkitGame.Core
             if (order.cream != null) _inventory.TryConsume(order.cream.id, 1);
             if (order.syrup != null) _inventory.TryConsume(order.syrup.id, 1);
             if (order.topping != null) _inventory.TryConsume(order.topping.id, 1);
-            if (order.isToGo)
-            {
-                foreach (var p in ResolveCupProductFromState(order))
-                    _inventory.TryConsume(p.id, 1);
-            }
-        }
-
-        private System.Collections.Generic.IEnumerable<ProductDefinition> ResolveCupProductFromState(Order order)
-        {
-            // У нас один тип "с собой" стакана. Найдём первый продукт категории Cup в инвентаре
-            // (если их когда-нибудь будет несколько — берём первый с id "cup_takeaway").
-            // Поскольку OrderResolutionService не знает про GameContent, мы возвращаем
-            // фиксированный id. Логично — id вшит и стабильный.
-            yield return new ProductDefinition { id = "cup_takeaway" } ;
-            // ВНИМАНИЕ: создавая ScriptableObject через new — обычно плохо; здесь только
-            // для передачи id в TryConsume(string), сам объект не используется как актив.
+            // Стакан "с собой" — один фиксированный тип, списываем по строковому id.
+            if (order.isToGo) _inventory.TryConsume("cup_takeaway", 1);
         }
     }
 }
