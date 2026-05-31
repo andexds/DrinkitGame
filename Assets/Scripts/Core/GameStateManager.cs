@@ -28,6 +28,7 @@ namespace DrinkitGame.Core
         public OrderGenerator OrderGenerator { get; private set; }
         public OrderService Orders { get; private set; }
         public OrderResolutionService OrderResolution { get; private set; }
+        public WheelService Wheel { get; private set; }
 
         private void Awake()
         {
@@ -57,6 +58,9 @@ namespace DrinkitGame.Core
             OrderGenerator = new OrderGenerator(State, content, Inventory);
             Orders = new OrderService(OrderGenerator, Reputation);
             OrderResolution = new OrderResolutionService(State, Economy, Inventory, Quests, Machine);
+            Wheel = new WheelService(State, content, Economy, Inventory);
+            OrderResolution.OrderCompleted += _ => Wheel.OnOrderCompleted();
+            Wheel.TokensChanged += _ => Save.Save(State);
 
             // Гарантируем что стартовый рецепт открыт (даже если в сейве пропал почему-то)
             Recipes.EnsureStarterUnlocked();
