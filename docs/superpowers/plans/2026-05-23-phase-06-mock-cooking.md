@@ -346,8 +346,9 @@ namespace DrinkitGame.Tests.EditMode
         {
             _state.hasDoubleNextOrderBuff = true;
             var order = MakeOrder();
-            var res = _resolver.Complete(order, quality: 100f, elapsedSeconds: 90f);
-            // base=250, mult=1.0, payout=250 × 2 = 500
+            // quality=70 (диапазон 50-80) даёт qualityMultiplier=0, elapsed=90 даёт speedMultiplier=0
+            // → base=250, mult=1.0, payout=250 × 2 = 500
+            var res = _resolver.Complete(order, quality: 70f, elapsedSeconds: 90f);
             Assert.IsTrue(res.doubleApplied);
             Assert.AreEqual(500, res.finalPayout);
             Assert.IsFalse(_state.hasDoubleNextOrderBuff, "Буст должен быть потрачен");

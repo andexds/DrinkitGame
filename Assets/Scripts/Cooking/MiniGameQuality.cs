@@ -13,9 +13,15 @@ namespace DrinkitGame.Cooking
         {
             float halfWidth = zoneWidth * 0.5f;
             float distance = Mathf.Abs(position - zoneCenter);
-            if (distance > halfWidth) return Mathf.Max(0f, 100f - (distance - halfWidth) * 500f);
-            float normalized = 1f - (distance / halfWidth);
-            return 60f + normalized * 40f; // от 60 в краях зоны до 100 в центре
+            if (distance <= halfWidth)
+            {
+                // Внутри зоны: 100 в центре, линейно до 60 на краях
+                float normalized = 1f - (distance / halfWidth);
+                return 60f + normalized * 40f;
+            }
+            // Вне зоны: 60 на границе, линейно падает к 0
+            float outside = distance - halfWidth;
+            return Mathf.Max(0f, 60f - outside * 300f);
         }
 
         /// Quality для rapid-tap: количество тапов / целевое количество, кэп 100.
