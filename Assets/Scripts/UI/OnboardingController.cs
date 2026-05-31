@@ -97,13 +97,32 @@ namespace DrinkitGame.UI
             }
 
             var step = steps[_currentIndex];
+
+            // Заказ мог появиться, пока игрок читал прошлый шаг (слоты заполняются сами,
+            // либо восстановились из сейва до подписки). Тогда шаг "жди заказ" уже выполнен.
+            if (step.trigger == StepTrigger.FirstOrderSpawned && AnyOrderPresent())
+            {
+                BeginNextStep();
+                return;
+            }
+
             if (textLabel != null) textLabel.text = step.text;
             if (mascot != null) mascot.Say(step.text, step.emotion);
 
-            // Кнопка "Дальше" видна только если триггер NextButton
-            if (nextButton != null) nextButton.gameObject.SetActive(step.trigger == StepTrigger.NextButton);
+            // Нарративные шаги (кнопка "Дальше") — модальный затемнённый оверлей.
+            // Игровые шаги (жди заказ / тапни заказ) — оверлей скрыт, подсказывает Дринчик,
+            // чтобы не перекрывать ни заказы, ни экран готовки.
+            bool modal = step.trigger == StepTrigger.NextButton;
+            if (nextButton != null) nextButton.gameObject.SetActive(modal);
+            gameObject.SetActive(modal);
+        }
 
-            gameObject.SetActive(true);
+        private bool AnyOrderPresent()
+        {
+            if (_gsm == null || _gsm.Orders == null) return false;
+            for (int i = 0; i < OrderService.SlotCount; i++)
+                if (_gsm.Orders.GetSlot(i) != null) return true;
+            return false;
         }
 
         private void OnNext()
