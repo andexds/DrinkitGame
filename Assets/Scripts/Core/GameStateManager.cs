@@ -30,6 +30,9 @@ namespace DrinkitGame.Core
         public OrderResolutionService OrderResolution { get; private set; }
         public WheelService Wheel { get; private set; }
 
+        private void OnApplicationQuit() => SaveAll();
+        private void OnApplicationPause(bool pause) { if (pause) SaveAll(); }
+
         private void Awake()
         {
             if (Instance != null && Instance != this)
@@ -60,20 +63,23 @@ namespace DrinkitGame.Core
             OrderResolution = new OrderResolutionService(State, Economy, Inventory, Quests, Machine);
             Wheel = new WheelService(State, content, Economy, Inventory);
             OrderResolution.OrderCompleted += _ => Wheel.OnOrderCompleted();
-            Wheel.TokensChanged += _ => Save.Save(State);
 
             // Гарантируем что стартовый рецепт открыт (даже если в сейве пропал почему-то)
             Recipes.EnsureStarterUnlocked();
+            // Восстанавливаем заказы из сейва
+            Orders.RestoreFromState(State, content);
 
             // Подписываем сохранение на любые изменения
-            Economy.BalanceChanged += _ => Save.Save(State);
-            Inventory.StockChanged += (_, __) => Save.Save(State);
-            Reputation.ReputationChanged += _ => Save.Save(State);
-            Quests.CountChanged += (_, __) => Save.Save(State);
-            Recipes.RecipeUnlocked += _ => Save.Save(State);
-            Machine.Upgraded += _ => Save.Save(State);
-            Orders.OrderSpawned += _ => Save.Save(State);
-            Orders.OrderAbandoned += _ => Save.Save(State);
+            Economy.BalanceChanged += _ => SaveAll();
+            Inventory.StockChanged += (_, __) => SaveAll();
+            Reputation.ReputationChanged += _ => SaveAll();
+            Quests.CountChanged += (_, __) => SaveAll();
+            Recipes.RecipeUnlocked += _ => SaveAll();
+            Machine.Upgraded += _ => SaveAll();
+            Orders.OrderSpawned += _ => SaveAll();
+            Orders.OrderAbandoned += _ => SaveAll();
+            Orders.OrderRemoved += _ => SaveAll();
+            Wheel.TokensChanged += _ => SaveAll();
 
             Debug.Log(
                 $"[GameStateManager] Start. " +
@@ -85,7 +91,11 @@ namespace DrinkitGame.Core
             var goal = GoalTracker.CurrentGoal();
             Debug.Log($"[GoalTracker] {goal.Description} — {goal.ProgressLabel}");
         }
-
+        private void SaveAll()
+        {
+            if (Orders != null) Orders.SerializeToState(State);
+            if (Save != null) Save.Save(State);
+        }
         private void OnDestroy()
         {
             if (Instance == this) Instance = null;
