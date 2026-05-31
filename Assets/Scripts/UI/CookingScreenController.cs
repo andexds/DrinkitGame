@@ -24,6 +24,9 @@ namespace DrinkitGame.UI
         public TMP_Text advanceButtonLabel;
         public Button cancelButton;
 
+        [Header("Mini-games")]
+        public DrinkitGame.Cooking.MiniGameDispatcher miniGameDispatcher;
+
         private Order _order;
         private List<CookingStep> _steps;
         private int _currentIndex;
@@ -75,22 +78,36 @@ namespace DrinkitGame.UI
             if (_steps == null || _currentIndex >= _steps.Count) return;
             var step = _steps[_currentIndex];
 
-            // 8a: мини-игры заглушены — Quality = 100
-            if (step.isMiniGame)
+            if (step.isMiniGame && miniGameDispatcher != null)
             {
+                var tier = GameStateManager.Instance.Machine.CurrentTier;
+                bool started = miniGameDispatcher.TryBegin(step, tier);
+                if (started)
+                {
+                    miniGameDispatcher.Completed += OnMiniGameDone;
+                    return;
+                }
+                // если по какой-то причине не стартовало — fallback: Quality=100
                 _qualitySum += 100f;
                 _qualityCount += 1;
             }
 
+            AdvanceStep();
+        }
+
+        private void OnMiniGameDone(float quality)
+        {
+            if (miniGameDispatcher != null) miniGameDispatcher.Completed -= OnMiniGameDone;
+            _qualitySum += quality;
+            _qualityCount += 1;
+            AdvanceStep();
+        }
+
+        private void AdvanceStep()
+        {
             _currentIndex++;
-            if (_currentIndex >= _steps.Count)
-            {
-                CompleteOrder();
-            }
-            else
-            {
-                ShowCurrentStep();
-            }
+            if (_currentIndex >= _steps.Count) CompleteOrder();
+            else ShowCurrentStep();
         }
 
         private void OnCancel()
