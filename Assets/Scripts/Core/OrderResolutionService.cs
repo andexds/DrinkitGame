@@ -23,6 +23,9 @@ namespace DrinkitGame.Core
         private readonly QuestService _quests;
         private readonly MachineService _machine;
 
+        /// Стреляет после успешной выдачи заказа. Параметр — итоговая выплата.
+        public event System.Action<OrderResolution> OrderCompleted;
+
         public OrderResolutionService(
             GameState state,
             EconomyService economy,
@@ -75,7 +78,10 @@ namespace DrinkitGame.Core
             // 6. Квест-счётчик
             _quests.RecordSale(order.recipe.id);
 
-            return new OrderResolution
+            // 7. Счётчик всех заказов (для жетонов колеса)
+            _state.totalOrdersCompleted += 1;
+
+            var resolution = new OrderResolution
             {
                 recipeId = order.recipe.id,
                 recipeDisplayName = order.recipe.displayName,
@@ -88,6 +94,8 @@ namespace DrinkitGame.Core
                 speedLabel = speedLabel,
                 qualityLabel = qualityLabel
             };
+            OrderCompleted?.Invoke(resolution);
+            return resolution;
         }
 
         private static (float mult, string label) ComputeSpeed(float elapsed)

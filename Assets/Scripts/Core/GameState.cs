@@ -39,6 +39,9 @@ namespace DrinkitGame.Core
 
         [Tooltip("Прошёл ли игрок онбординг (хотя бы один раз).")]
         public bool onboardingCompleted;
+
+        [Tooltip("Сколько заказов всего успешно выдано (для накопления жетонов колеса).")]
+        public int totalOrdersCompleted;
     }
 
     /// Пара "продукт → остаток" в инвентаре.
