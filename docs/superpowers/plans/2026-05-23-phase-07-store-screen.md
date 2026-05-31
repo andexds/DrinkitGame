@@ -258,6 +258,7 @@ git add Assets/Scripts/UI/RecipeRow.cs Assets/Scripts/UI/RecipeRow.cs.meta Asset
 
 В `StoreScreenPanel/TabContent` правый клик → `UI → Scroll View`. Переименуй в `IngredientsScroll`. Настрой как в Task 2.1.
 
+
 - [ ] **Step 2: `IngredientRow.cs`**
 
 ```csharp
@@ -340,6 +341,7 @@ git add Assets/Scripts/UI/IngredientRow.cs Assets/Scripts/UI/IngredientRow.cs.me
 ```
 
 ---
+вот тут
 
 ## Task 4: Вкладка "Машина"
 

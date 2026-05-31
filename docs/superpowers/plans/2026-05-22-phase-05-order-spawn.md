@@ -121,7 +121,7 @@ namespace DrinkitGame.Core
             _state = state ?? throw new ArgumentNullException(nameof(state));
             _content = content ?? throw new ArgumentNullException(nameof(content));
             _inventory = inventory ?? throw new ArgumentNullException(nameof(inventory));
-            _rng = rng ?? new Random();
+            _rng = rng ?? new System.Random();
         }
 
         /// Сгенерировать заказ для указанного слота. Возвращает null если ничего нельзя приготовить
@@ -346,7 +346,7 @@ namespace DrinkitGame.Tests.EditMode
         [Test]
         public void Generate_ReturnsNull_WhenNoRecipesUnlocked()
         {
-            var gen = new OrderGenerator(_state, _content, _inventory, new Random(1));
+            var gen = new OrderGenerator(_state, _content, _inventory, new System.Random(1));
             Assert.IsNull(gen.Generate(0));
         }
 
@@ -355,7 +355,7 @@ namespace DrinkitGame.Tests.EditMode
         {
             _state.unlockedRecipeIds.Add("espresso");
             // Никаких ингредиентов в инвентаре
-            var gen = new OrderGenerator(_state, _content, _inventory, new Random(1));
+            var gen = new OrderGenerator(_state, _content, _inventory, new System.Random(1));
             Assert.IsNull(gen.Generate(0));
         }
 
@@ -364,7 +364,7 @@ namespace DrinkitGame.Tests.EditMode
         {
             _state.unlockedRecipeIds.Add("espresso");
             _inventory.Add("beans", 10);
-            var gen = new OrderGenerator(_state, _content, _inventory, new Random(1));
+            var gen = new OrderGenerator(_state, _content, _inventory, new System.Random(1));
             var order = gen.Generate(0);
             Assert.IsNotNull(order);
             Assert.AreEqual("espresso", order.recipe.id);
@@ -379,7 +379,7 @@ namespace DrinkitGame.Tests.EditMode
             _inventory.Add("beans", 10);
             _inventory.Add("milk_oat", 5);
             // milk_cow НЕТ — генератор должен выбрать только овсяное
-            var gen = new OrderGenerator(_state, _content, _inventory, new Random(42));
+            var gen = new OrderGenerator(_state, _content, _inventory, new System.Random(42));
 
             // 5 попыток — если хотя бы раз попало на капучино, молоко должно быть овсяным
             bool foundCappuccino = false;
@@ -401,7 +401,7 @@ namespace DrinkitGame.Tests.EditMode
             _state.unlockedRecipeIds.AddRange(new[] { "espresso", "cappuccino" });
             _inventory.Add("beans", 10);
             // Молока нет вообще
-            var gen = new OrderGenerator(_state, _content, _inventory, new Random(42));
+            var gen = new OrderGenerator(_state, _content, _inventory, new System.Random(42));
 
             for (int i = 0; i < 30; i++)
             {
@@ -416,7 +416,7 @@ namespace DrinkitGame.Tests.EditMode
         {
             _state.unlockedRecipeIds.AddRange(new[] { "espresso", "americano" });
             _inventory.Add("beans", 100);
-            var gen = new OrderGenerator(_state, _content, _inventory, new Random(7));
+            var gen = new OrderGenerator(_state, _content, _inventory, new System.Random(7));
 
             int americanoCount = 0, espressoCount = 0;
             for (int i = 0; i < 200; i++)
@@ -426,10 +426,10 @@ namespace DrinkitGame.Tests.EditMode
                 else espressoCount++;
             }
 
-            // Американо открыто последним → вес 4 vs 1. Ожидаем ~80% / 20%.
-            // С шумом — americano должен сильно лидировать.
-            Assert.Greater(americanoCount, espressoCount * 2,
-                $"Ожидали что американо лидирует (4:1), фактически americano={americanoCount}, espresso={espressoCount}");
+            // Американо открыто последним (вес 4), эспрессо — предпоследним (вес 2).
+            // Ожидаемое соотношение 4:2 ≈ 67% / 33%. С шумом проверяем что americano > espresso × 1.5.
+            Assert.Greater(americanoCount, espressoCount * 1.5,
+                $"Ожидали что американо заметно лидирует (4:2), фактически americano={americanoCount}, espresso={espressoCount}");
         }
     }
 }
@@ -488,7 +488,7 @@ namespace DrinkitGame.Core
         {
             _generator = generator ?? throw new ArgumentNullException(nameof(generator));
             _reputation = reputation ?? throw new ArgumentNullException(nameof(reputation));
-            _rng = rng ?? new Random();
+            _rng = rng ?? new System.Random();
         }
 
         public Order GetSlot(int index)
@@ -622,13 +622,13 @@ namespace DrinkitGame.Tests.EditMode
             _inventory.Add("beans", 100);
 
             _reputation = new ReputationService(_state);
-            _generator = new OrderGenerator(_state, _content, _inventory, new Random(1));
+            _generator = new OrderGenerator(_state, _content, _inventory, new System.Random(1));
         }
 
         [Test]
         public void Tick_SpawnsOrder_AfterDelay_InFreeSlot()
         {
-            var service = new OrderService(_generator, _reputation, new Random(1));
+            var service = new OrderService(_generator, _reputation, new System.Random(1));
             Order spawned = null;
             service.OrderSpawned += o => spawned = o;
 
@@ -646,7 +646,7 @@ namespace DrinkitGame.Tests.EditMode
         [Test]
         public void Tick_FillsAllThreeSlots()
         {
-            var service = new OrderService(_generator, _reputation, new Random(1));
+            var service = new OrderService(_generator, _reputation, new System.Random(1));
             int spawnCount = 0;
             service.OrderSpawned += _ => spawnCount++;
 
@@ -662,7 +662,7 @@ namespace DrinkitGame.Tests.EditMode
         [Test]
         public void Tick_StopsSpawning_WhenAllSlotsFull()
         {
-            var service = new OrderService(_generator, _reputation, new Random(1));
+            var service = new OrderService(_generator, _reputation, new System.Random(1));
             for (int i = 0; i < 60; i++) service.Tick(1f);
 
             int extraSpawn = 0;
@@ -676,13 +676,14 @@ namespace DrinkitGame.Tests.EditMode
         [Test]
         public void Tick_AbandonsOrder_AfterPatienceExpires()
         {
-            var service = new OrderService(_generator, _reputation, new Random(1));
+            var service = new OrderService(_generator, _reputation, new System.Random(1));
 
-            // Спавним
-            Order spawned = null;
-            service.OrderSpawned += o => spawned = o;
-            for (int i = 0; i < 20 && spawned == null; i++) service.Tick(1f);
-            Assert.IsNotNull(spawned);
+            // Захватываем ПЕРВЫЙ заспавненный заказ (внутри Tick(310f) после ухода клиента
+            // может появиться новый заказ в тот же слот — нам нужен именно первый).
+            Order firstSpawned = null;
+            service.OrderSpawned += o => { if (firstSpawned == null) firstSpawned = o; };
+            for (int i = 0; i < 20 && firstSpawned == null; i++) service.Tick(1f);
+            Assert.IsNotNull(firstSpawned);
 
             Order abandoned = null;
             service.OrderAbandoned += o => abandoned = o;
@@ -692,16 +693,17 @@ namespace DrinkitGame.Tests.EditMode
             service.Tick(310f);
 
             Assert.IsNotNull(abandoned, "Клиент должен был уйти");
-            Assert.AreSame(spawned, abandoned);
-            Assert.IsNull(service.GetSlot(0), "Слот должен освободиться");
+            Assert.AreSame(firstSpawned, abandoned, "Уйти должен именно первый клиент");
             Assert.AreEqual(repBefore - OrderService.ReputationLossOnAbandon,
                 _reputation.Reputation, 0.001f, "Репутация должна упасть на 0.1");
+            // ВАЖНО: не проверяем что слот пустой — за тот же Tick(310f) мог уже
+            // спавниться новый заказ в освободившийся слот, это норм.
         }
 
         [Test]
         public void TakeFromSlot_ReturnsOrder_AndFreesSlot()
         {
-            var service = new OrderService(_generator, _reputation, new Random(1));
+            var service = new OrderService(_generator, _reputation, new System.Random(1));
             for (int i = 0; i < 20 && service.GetSlot(0) == null; i++) service.Tick(1f);
             Assert.IsNotNull(service.GetSlot(0));
 
@@ -720,7 +722,7 @@ namespace DrinkitGame.Tests.EditMode
             // Очищаем зерно
             _inventory.TryConsume("beans", 100);
 
-            var service = new OrderService(_generator, _reputation, new Random(1));
+            var service = new OrderService(_generator, _reputation, new System.Random(1));
             int spawnCount = 0;
             service.OrderSpawned += _ => spawnCount++;
 
