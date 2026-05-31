@@ -3,8 +3,7 @@ using UnityEngine.UI;
 
 namespace DrinkitGame.UI
 {
-    /// Временные обработчики табов — лог в Console.
-    /// "Магазин" будет реализован в Phase 7 (Store Screen).
+    /// Нижний таб-бар: Главная / Магазин. Магазин открывается через UIRouter.
     public class TabBarPlaceholderController : MonoBehaviour
     {
         public Button homeTab;
@@ -13,11 +12,9 @@ namespace DrinkitGame.UI
         private void Start()
         {
             if (homeTab != null)
-                homeTab.onClick.AddListener(() =>
-                    Debug.Log("[TabBar] Главная — мы уже тут."));
+                homeTab.onClick.AddListener(() => UIRouter.Instance?.ShowMain());
             if (storeTab != null)
-                storeTab.onClick.AddListener(() =>
-                    Debug.Log("[TabBar] Магазин ещё не реализован (Phase 7)."));
+                storeTab.onClick.AddListener(() => UIRouter.Instance?.OpenStore());
         }
     }
 }

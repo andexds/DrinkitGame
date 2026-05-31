@@ -13,6 +13,7 @@ namespace DrinkitGame.UI
         public GameObject mainScreenPanel;
         public GameObject cookingScreenPanel;
         public GameObject orderResultPopup;
+        public GameObject storeScreenPanel;
 
         [Header("Optional cooking controller")]
         public CookingScreenController cookingController;
@@ -43,6 +44,7 @@ namespace DrinkitGame.UI
             SetActive(mainScreenPanel, true);
             SetActive(cookingScreenPanel, false);
             SetActive(orderResultPopup, false);
+            SetActive(storeScreenPanel, false);
         }
 
         public void OpenCooking(Order order)
@@ -51,6 +53,7 @@ namespace DrinkitGame.UI
             SetActive(mainScreenPanel, false);
             SetActive(cookingScreenPanel, true);
             SetActive(orderResultPopup, false);
+            SetActive(storeScreenPanel, false);
         }
 
         public void ShowOrderResult(OrderResolution resolution)
@@ -67,6 +70,13 @@ namespace DrinkitGame.UI
         private static void SetActive(GameObject go, bool active)
         {
             if (go != null && go.activeSelf != active) go.SetActive(active);
+        }
+        public void OpenStore()
+        {
+            SetActive(mainScreenPanel, false);
+            SetActive(cookingScreenPanel, false);
+            SetActive(storeScreenPanel, true);
+            SetActive(orderResultPopup, false);
         }
     }
 }
