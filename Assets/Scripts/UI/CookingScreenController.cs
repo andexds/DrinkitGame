@@ -166,7 +166,15 @@ namespace DrinkitGame.UI
             foreach (var ko in kitchenObjects)
             {
                 if (ko == null) continue;
-                ko.SetActive(ko.Handles(step.type));
+                bool active = ko.Handles(step.type);
+                // TakeCup: оба cup-кнопки Handles(TakeCup)==true, но активируем
+                // только правильную — иначе игрок видит подсветку обеих и тапает не ту.
+                if (active && step.type == CookingStepType.TakeCup && _order != null
+                    && ko.isToGoCup != _order.isToGo)
+                {
+                    active = false;
+                }
+                ko.SetActive(active);
             }
 
             // PourMilk / PourCream — своя удлинённая анимация
