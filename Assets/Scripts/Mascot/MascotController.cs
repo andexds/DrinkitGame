@@ -50,6 +50,10 @@ namespace DrinkitGame.Mascot
         public TMP_Text speechText;
         public float bubbleVisibleSeconds = 3f;
 
+        [Tooltip("Скрывается, когда показывается пузырь (например, Pill_Goal). " +
+                 "Не обязательно — оставь null, если ничего скрывать не нужно.")]
+        public GameObject hideWhenBubbleShown;
+
         [Header("Emotion colors (placeholders)")]
         public Color idleColor = new(0.31f, 0.65f, 0.85f);     // 4FA7D9 голубой
         public Color happyColor = new(0.18f, 0.72f, 0.51f);    // зелёный
@@ -244,6 +248,8 @@ namespace DrinkitGame.Mascot
             if (!gameObject.activeInHierarchy) return;
             speechText.text = text;
             speechBubbleRoot.SetActive(true);
+            // Скрываем перекрывающий UI (Pill_Goal и т.п.) на время показа пузыря.
+            if (hideWhenBubbleShown != null) hideWhenBubbleShown.SetActive(false);
 
             if (_hideBubbleCoroutine != null) StopCoroutine(_hideBubbleCoroutine);
             _hideBubbleCoroutine = StartCoroutine(HideBubbleAfter(bubbleVisibleSeconds));
@@ -264,6 +270,8 @@ namespace DrinkitGame.Mascot
         public void HideBubble()
         {
             if (speechBubbleRoot != null) speechBubbleRoot.SetActive(false);
+            // Возвращаем перекрытый UI обратно.
+            if (hideWhenBubbleShown != null) hideWhenBubbleShown.SetActive(true);
         }
 
         private IEnumerator HideBubbleAfter(float seconds)
