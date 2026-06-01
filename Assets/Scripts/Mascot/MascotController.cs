@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using DrinkitGame.Core;
 using DrinkitGame.Data;
 using TMPro;
@@ -7,14 +8,37 @@ using UnityEngine.UI;
 
 namespace DrinkitGame.Mascot
 {
+    /// Один визуал для одной эмоции. Фолбэк: анимация → статика → цвет-плейсхолдер.
+    /// Художник заполняет столько, сколько успел; остальные эмоции работают со старым плейсхолдером.
+    [System.Serializable]
+    public class EmotionVisual
+    {
+        public MascotEmotion emotion;
+
+        [Tooltip("Статичная картинка. Используется если массив кадров пуст.")]
+        public Sprite staticSprite;
+
+        [Tooltip("Кадры анимации. Если массив не пуст — играется циклически, перебивая staticSprite.")]
+        public Sprite[] animationFrames;
+
+        [Range(1f, 24f)]
+        [Tooltip("Скорость анимации, кадров в секунду.")]
+        public float fps = 6f;
+    }
+
     /// Управляет визуалом и эмоциями маскота Дринчика.
     /// Висит на DrinchikPlaceholder GameObject (или его контейнере).
-    /// Спрайты — плейсхолдеры: меняем цвет + textLabel вместо смены спрайта.
+    /// Если для эмоции загружен спрайт/анимация — показывает их; иначе цветной плейсхолдер.
     public class MascotController : MonoBehaviour
     {
         [Header("Visual placeholders (until real art)")]
         public Image bodyImage;
         public TMP_Text bodyLabel;    // плейсхолдер: текст эмоции внутри квадрата
+
+        [Header("Art per emotion (sprites override colors)")]
+        [Tooltip("По одной записи на эмоцию. Заполняй по мере поступления арта. " +
+                 "Эмоции без визуала показываются цветным плейсхолдером.")]
+        public List<EmotionVisual> visuals = new();
 
         [Header("Speech bubble")]
         public GameObject speechBubbleRoot;
@@ -33,6 +57,7 @@ namespace DrinkitGame.Mascot
 
         private GameStateManager _gsm;
         private Coroutine _hideBubbleCoroutine;
+        private Coroutine _animCoroutine;
 
         public MascotEmotion CurrentEmotion { get; private set; } = MascotEmotion.Idle;
 
@@ -78,8 +103,78 @@ namespace DrinkitGame.Mascot
         public void SetEmotion(MascotEmotion emotion)
         {
             CurrentEmotion = emotion;
-            if (bodyImage != null) bodyImage.color = ColorForEmotion(emotion);
-            if (bodyLabel != null) bodyLabel.text = LabelForEmotion(emotion);
+
+            // Останавливаем предыдущую анимацию (если была) — иначе кадры старой эмоции
+            // продолжают мигать поверх новой.
+            if (_animCoroutine != null)
+            {
+                StopCoroutine(_animCoroutine);
+                _animCoroutine = null;
+            }
+
+            var visual = FindVisual(emotion);
+            bool hasAnim = visual != null && visual.animationFrames != null && visual.animationFrames.Length > 0;
+            bool hasStatic = visual != null && visual.staticSprite != null;
+
+            if (hasAnim)
+            {
+                // 1. Анимация (старшая опция)
+                ApplySpriteMode();
+                // Запускаем корутину только если объект активен (иначе StartCoroutine кинет).
+                if (gameObject.activeInHierarchy)
+                    _animCoroutine = StartCoroutine(AnimateLoop(visual.animationFrames, visual.fps));
+                else if (bodyImage != null)
+                    bodyImage.sprite = visual.animationFrames[0]; // хотя бы первый кадр
+            }
+            else if (hasStatic)
+            {
+                // 2. Статичный спрайт
+                ApplySpriteMode();
+                if (bodyImage != null) bodyImage.sprite = visual.staticSprite;
+            }
+            else
+            {
+                // 3. Фолбэк на цвет-плейсхолдер (как было)
+                if (bodyImage != null)
+                {
+                    bodyImage.sprite = null;
+                    bodyImage.color = ColorForEmotion(emotion);
+                }
+                if (bodyLabel != null)
+                {
+                    bodyLabel.gameObject.SetActive(true);
+                    bodyLabel.text = LabelForEmotion(emotion);
+                }
+            }
+        }
+
+        /// Готовим Image для показа спрайта: белый цвет (не тонировать), скрываем плейсхолдер-надпись.
+        private void ApplySpriteMode()
+        {
+            if (bodyImage != null) bodyImage.color = Color.white;
+            if (bodyLabel != null) bodyLabel.gameObject.SetActive(false);
+        }
+
+        private EmotionVisual FindVisual(MascotEmotion e)
+        {
+            if (visuals == null) return null;
+            foreach (var v in visuals)
+                if (v != null && v.emotion == e) return v;
+            return null;
+        }
+
+        private IEnumerator AnimateLoop(Sprite[] frames, float fps)
+        {
+            if (frames == null || frames.Length == 0) yield break;
+            fps = Mathf.Max(1f, fps);
+            var wait = new WaitForSeconds(1f / fps);
+            int i = 0;
+            while (true)
+            {
+                if (bodyImage != null && frames[i] != null) bodyImage.sprite = frames[i];
+                i = (i + 1) % frames.Length;
+                yield return wait;
+            }
         }
 
         public void Say(string text, MascotEmotion emotion = MascotEmotion.Idle)
@@ -103,6 +198,9 @@ namespace DrinkitGame.Mascot
             // иначе он «зависает» видимым при возврате на экран.
             HideBubble();
             _hideBubbleCoroutine = null;
+            // Корутина анимации тоже убивается Unity — обнуляем хэндл, чтобы при OnEnable
+            // SetEmotion корректно стартанул новую (а не думал, что предыдущая ещё крутится).
+            _animCoroutine = null;
         }
 
         public void HideBubble()

@@ -68,7 +68,7 @@ namespace DrinkitGame.UI
             if (order.cream != null) sb.Append("сливки · ");
             if (order.syrup != null) sb.Append("сироп · ");
             if (order.topping != null) sb.Append(order.topping.displayName).Append(" · ");
-            sb.Append(order.isToGo ? "с собой" : "тут");
+            sb.Append(order.isToGo ? "с собой" : "в кафе");
             return sb.ToString();
         }
     }

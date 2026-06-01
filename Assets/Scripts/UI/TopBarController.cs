@@ -79,7 +79,7 @@ namespace DrinkitGame.UI
 
         private void OnReputationChanged(float newRep)
         {
-            if (ratingLabel != null) ratingLabel.text = $"Рейтинг {newRep:F1}";
+            if (ratingLabel != null) ratingLabel.text = $"{newRep:F1}";
         }
 
         private void RefreshGoal()
