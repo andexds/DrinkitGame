@@ -87,6 +87,24 @@ namespace DrinkitGame.UI
 
         private void OnStockChanged(string productId, int newCount) => Refresh();
 
+#if UNITY_EDITOR
+        /// Unity не применяет C#-инициализаторы к элементам List<>, добавленным через
+        /// инспектор кнопкой «+» — все Color-поля заполняются (0,0,0,0). Тут чиним альфу,
+        /// чтобы новые секции были сразу видимыми. Если ты СОЗНАТЕЛЬНО хочешь прозрачный
+        /// цвет — переопредели в инспекторе (тогда α уже не равно 0 и мы ничего не трогаем).
+        private void OnValidate()
+        {
+            if (sections == null) return;
+            var defaultLow = new Color(0.92f, 0.35f, 0.30f, 1f);
+            foreach (var s in sections)
+            {
+                if (s == null) continue;
+                if (s.normalColor.a == 0f) s.normalColor = Color.white;
+                if (s.lowColor.a == 0f) s.lowColor = defaultLow;
+            }
+        }
+#endif
+
         private void Refresh()
         {
             if (_gsm == null || _gsm.content == null) return;
