@@ -12,9 +12,8 @@ namespace DrinkitGame.UI
 {
     /// Тактильный экран готовки: игрок тапает на объекты кухни (KitchenObject).
     /// Каждый объект декларирует, какие шаги CookingFlow он закрывает.
-    /// Контроллер активирует подходящие объекты на каждом шаге, авто-пропускает
-    /// шаги без UI (TakeMilk/TakeCream/PourMilk/PourCream) и включает ServeButton
-    /// только на Deliver-шаге.
+    /// Дополнительно отвечает за фидбэк: fade-in кружки на кофемашине, налив
+    /// молока с пульсом, частицы-успех на «положил в стакан» шагах.
     public class CookingScreenController : MonoBehaviour
     {
         [Header("HUD")]
@@ -35,9 +34,47 @@ namespace DrinkitGame.UI
         [Header("Mini-games")]
         public MiniGameDispatcher miniGameDispatcher;
 
+        // ===================== Визуальный фидбэк =====================
+
+        [Header("Чашки на кофемашине (fade-in при выборе)")]
+        [Tooltip("Image 'тут'-чашки, размещённая на CoffeeMachine. По дефолту выключена. " +
+                 "Включается с fade-in при тапе на CupHere.")]
+        public Image cupHereOnMachine;
+        public Sprite cupHereEmpty;
+        [Tooltip("Опционально: спрайт 'полной' чашки 'тут' — подменяется после первой налив-шаги.")]
+        public Sprite cupHereFull;
+
+        [Tooltip("Image 'с собой'-чашки на CoffeeMachine. По дефолту выключена.")]
+        public Image cupTakeawayOnMachine;
+        public Sprite cupTakeawayEmpty;
+        [Tooltip("Опционально: 'полная' takeaway-чашка. Если null — sprite не меняется.")]
+        public Sprite cupTakeawayFull;
+
+        [Tooltip("Длительность fade-in кружки при появлении на машине.")]
+        [Range(0.05f, 1f)]
+        public float cupFadeInDuration = 0.3f;
+
+        [Header("Налив молока (PourMilk / PourCream)")]
+        [Tooltip("Image 'наливающегося молока'. По дефолту выключена. Появляется на milkPourDuration сек.")]
+        public Image pouringMilkImage;
+        [Tooltip("Сколько секунд показывать наливающееся молоко.")]
+        [Range(0.5f, 5f)]
+        public float milkPourDuration = 2.5f;
+        [Tooltip("Амплитуда пульсации в долях (0.01 = ±1%). Частота 8 Гц зашита.")]
+        [Range(0f, 0.1f)]
+        public float pourPulseAmplitude = 0.01f;
+
+        [Header("Частицы 'DONE' (после каждого 'положил в стакан' шага)")]
+        [Tooltip("UIBurster компонент рядом с кружкой. Контроллер вызывает Burst() " +
+                 "после Extract / AddHotWater / PourMilk / PourCream / PourOver / " +
+                 "AddSyrup / AddTopping / AddCacao / AddMatcha / Whisk.")]
+        public UIBurster successBurster;
+
+        // ===================== Тайминги обычных шагов =====================
+
         [Header("Timings")]
         [Tooltip("Задержка перед автоматическим переходом дальше для шагов без UI " +
-                 "(TakeMilk, TakeCream, PourMilk, PourCream).")]
+                 "(TakeMilk, TakeCream — НЕ PourMilk/PourCream, у тех своя длительность).")]
         [Range(0.1f, 2f)]
         public float autoStepDelay = 0.3f;
 
@@ -46,19 +83,22 @@ namespace DrinkitGame.UI
         [Range(0.2f, 3f)]
         public float tapActionDelay = 0.6f;
 
+        // ===================== Состояние =====================
+
         private Order _order;
         private List<CookingStep> _steps;
         private int _currentIndex;
         private float _qualitySum;
         private int _qualityCount;
         private bool _stepInProgress; // защита от двойного тапа
+        private bool _cupFilled;      // флаг для swap к "full" sprite
 
         private void Awake()
         {
             if (cancelButton != null) cancelButton.onClick.AddListener(OnCancel);
             if (serveButton != null) serveButton.onClick.AddListener(OnServe);
 
-            // Каждый KitchenObject шлёт нам Tapped когда игрок по нему щёлкнул.
+            // Каждый KitchenObject шлёт Tapped когда игрок по нему щёлкнул.
             // Локальная копия ссылки нужна чтобы лямбда не захватывала переменную цикла.
             foreach (var ko in kitchenObjects)
             {
@@ -77,12 +117,17 @@ namespace DrinkitGame.UI
             _qualitySum = 0f;
             _qualityCount = 0;
             _stepInProgress = false;
+            _cupFilled = false;
 
             if (orderSummaryLabel != null)
                 orderSummaryLabel.text = BuildSummary(order);
 
-            // Прячем тап-зоны, которые не нужны для этого рецепта.
+            // Прячем тап-зоны, не нужные для рецепта.
             ConfigureVisibilityFor(order);
+
+            // Сбрасываем визуал-фидбэк к стартовому состоянию.
+            ResetCupOverlays();
+            if (pouringMilkImage != null) pouringMilkImage.gameObject.SetActive(false);
 
             ShowCurrentStep();
         }
@@ -97,11 +142,8 @@ namespace DrinkitGame.UI
             }
         }
 
-        // === Видимость и активация объектов ===
+        // === Видимость тап-зон ===
 
-        /// Прячем тап-зоны, которые не нужны для текущего рецепта (например, фильтр
-        /// для эспрессо или матча-банка для капучино). Контроллер ищет KitchenObject
-        /// по типу шага: если рецепт этот тип никогда не вызовет — объект скрывается.
         private void ConfigureVisibilityFor(Order order)
         {
             var neededTypes = new HashSet<CookingStepType>();
@@ -110,7 +152,6 @@ namespace DrinkitGame.UI
             foreach (var ko in kitchenObjects)
             {
                 if (ko == null) continue;
-                // Объект нужен, если хотя бы один из его handlesSteps встречается в шагах рецепта.
                 bool needed = false;
                 if (ko.handlesSteps != null)
                 {
@@ -137,7 +178,7 @@ namespace DrinkitGame.UI
             if (serveButton != null)
                 serveButton.interactable = step.type == CookingStepType.Deliver;
 
-            // Активируем подходящие объекты
+            // Активируем тап-зоны
             foreach (var ko in kitchenObjects)
             {
                 if (ko == null) continue;
@@ -145,17 +186,21 @@ namespace DrinkitGame.UI
                 ko.SetActive(active);
             }
 
-            // Авто-шаги (без UI) — пропускаем с задержкой
-            if (IsAutoStep(step.type))
+            // PourMilk / PourCream — своя удлинённая анимация
+            if (step.type == CookingStepType.PourMilk || step.type == CookingStepType.PourCream)
+            {
+                StartCoroutine(PourMilkSequence());
+            }
+            // Остальные авто-шаги (TakeMilk / TakeCream) — короткая пауза и дальше
+            else if (IsAutoSkip(step.type))
+            {
                 StartCoroutine(AutoAdvanceAfter(autoStepDelay));
+            }
         }
 
-        private static bool IsAutoStep(CookingStepType t)
+        private static bool IsAutoSkip(CookingStepType t)
         {
-            return t == CookingStepType.TakeMilk
-                || t == CookingStepType.TakeCream
-                || t == CookingStepType.PourMilk
-                || t == CookingStepType.PourCream;
+            return t == CookingStepType.TakeMilk || t == CookingStepType.TakeCream;
         }
 
         private IEnumerator AutoAdvanceAfter(float seconds)
@@ -174,12 +219,17 @@ namespace DrinkitGame.UI
             if (_steps == null || _currentIndex >= _steps.Count) return;
 
             var step = _steps[_currentIndex];
-            if (!ko.Handles(step.type)) return; // защита, хотя SetActive(false) уже отрубил кнопку
+            if (!ko.Handles(step.type)) return; // защита
 
-            // Особый случай: TakeCup — нужный стакан должен совпасть с order.isToGo
-            if (step.type == CookingStepType.TakeCup && ko.isToGoCup != _order.isToGo)
+            // TakeCup: проверяем что выбран правильный стакан + запускаем fade-in кружки на машине
+            if (step.type == CookingStepType.TakeCup)
+            {
+                if (ko.isToGoCup != _order.isToGo) return;
+                StartCoroutine(TakeCupSequence());
                 return;
+            }
 
+            // Мини-игры (M1/M2/M3/M4)
             if (step.isMiniGame && miniGameDispatcher != null)
             {
                 var tier = GameStateManager.Instance.Machine.CurrentTier;
@@ -190,7 +240,6 @@ namespace DrinkitGame.UI
                     _stepInProgress = true;
                     return;
                 }
-                // Не удалось запустить — fallback quality=100
                 _qualitySum += 100f; _qualityCount += 1;
                 AdvanceStep();
                 return;
@@ -198,6 +247,64 @@ namespace DrinkitGame.UI
 
             // Обычный тап-шаг — короткая «анимация», потом advance
             StartCoroutine(TapActionThenAdvance(tapActionDelay));
+        }
+
+        // === Анимации/последовательности ===
+
+        private IEnumerator TakeCupSequence()
+        {
+            _stepInProgress = true;
+            Image target = _order.isToGo ? cupTakeawayOnMachine : cupHereOnMachine;
+            if (target != null)
+            {
+                target.gameObject.SetActive(true);
+                Color c = target.color;
+                c.a = 0f; target.color = c;
+                float t = 0f;
+                while (t < cupFadeInDuration)
+                {
+                    t += Time.deltaTime;
+                    c.a = Mathf.Clamp01(t / cupFadeInDuration);
+                    target.color = c;
+                    yield return null;
+                }
+                c.a = 1f; target.color = c;
+            }
+            else
+            {
+                yield return new WaitForSeconds(tapActionDelay);
+            }
+            _stepInProgress = false;
+            AdvanceStep();
+        }
+
+        private IEnumerator PourMilkSequence()
+        {
+            _stepInProgress = true;
+            if (pouringMilkImage != null)
+            {
+                pouringMilkImage.gameObject.SetActive(true);
+                StartCoroutine(PulseScale(pouringMilkImage.rectTransform, milkPourDuration));
+            }
+            yield return new WaitForSeconds(milkPourDuration);
+            if (pouringMilkImage != null) pouringMilkImage.gameObject.SetActive(false);
+            _stepInProgress = false;
+            AdvanceStep();
+        }
+
+        private IEnumerator PulseScale(RectTransform rt, float duration)
+        {
+            if (rt == null) yield break;
+            Vector3 baseScale = rt.localScale;
+            float t = 0f;
+            while (t < duration && rt != null && rt.gameObject.activeSelf)
+            {
+                t += Time.deltaTime;
+                float pulse = 1f + Mathf.Sin(t * 8f) * pourPulseAmplitude;
+                rt.localScale = baseScale * pulse;
+                yield return null;
+            }
+            if (rt != null) rt.localScale = baseScale;
         }
 
         private IEnumerator TapActionThenAdvance(float seconds)
@@ -217,11 +324,87 @@ namespace DrinkitGame.UI
             AdvanceStep();
         }
 
+        // === Завершение шага: эффекты и переход ===
+
         private void AdvanceStep()
         {
+            // Эффекты ПОСЛЕ только что завершённого шага (до инкремента).
+            if (_steps != null && _currentIndex < _steps.Count)
+                OnStepCompletedEffects(_steps[_currentIndex]);
+
             _currentIndex++;
             if (_currentIndex >= _steps.Count) CompleteOrder();
             else ShowCurrentStep();
+        }
+
+        /// Срабатывает после успешного завершения шага: подменяет стакан на «full»
+        /// после первой наливки, кидает успех-частицы на «положил в стакан» шагах.
+        private void OnStepCompletedEffects(CookingStep step)
+        {
+            // 1. Первый «налив» → swap стакана на full-спрайт
+            if (!_cupFilled && IsFillStep(step.type))
+            {
+                SwapCupToFull();
+                _cupFilled = true;
+            }
+
+            // 2. Частицы успеха на «положил в стакан» шагах
+            if (IsAddToCupStep(step.type) && successBurster != null)
+                successBurster.Burst();
+        }
+
+        private static bool IsFillStep(CookingStepType t)
+        {
+            return t == CookingStepType.Extract
+                || t == CookingStepType.AddHotWater
+                || t == CookingStepType.PourMilk
+                || t == CookingStepType.PourCream
+                || t == CookingStepType.PourOver;
+        }
+
+        private static bool IsAddToCupStep(CookingStepType t)
+        {
+            return t == CookingStepType.Extract
+                || t == CookingStepType.AddHotWater
+                || t == CookingStepType.PourMilk
+                || t == CookingStepType.PourCream
+                || t == CookingStepType.PourOver
+                || t == CookingStepType.AddSyrup
+                || t == CookingStepType.AddTopping
+                || t == CookingStepType.AddCacao
+                || t == CookingStepType.AddMatcha
+                || t == CookingStepType.Whisk;
+        }
+
+        private void SwapCupToFull()
+        {
+            if (_order == null) return;
+            if (_order.isToGo)
+            {
+                if (cupTakeawayOnMachine != null && cupTakeawayFull != null)
+                    cupTakeawayOnMachine.sprite = cupTakeawayFull;
+            }
+            else
+            {
+                if (cupHereOnMachine != null && cupHereFull != null)
+                    cupHereOnMachine.sprite = cupHereFull;
+            }
+        }
+
+        private void ResetCupOverlays()
+        {
+            if (cupHereOnMachine != null)
+            {
+                cupHereOnMachine.gameObject.SetActive(false);
+                if (cupHereEmpty != null) cupHereOnMachine.sprite = cupHereEmpty;
+                var c = cupHereOnMachine.color; c.a = 1f; cupHereOnMachine.color = c;
+            }
+            if (cupTakeawayOnMachine != null)
+            {
+                cupTakeawayOnMachine.gameObject.SetActive(false);
+                if (cupTakeawayEmpty != null) cupTakeawayOnMachine.sprite = cupTakeawayEmpty;
+                var c = cupTakeawayOnMachine.color; c.a = 1f; cupTakeawayOnMachine.color = c;
+            }
         }
 
         // === Глобальные кнопки ===

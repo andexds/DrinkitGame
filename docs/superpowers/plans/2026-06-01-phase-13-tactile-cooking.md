@@ -498,26 +498,155 @@ if (step.type == CookingStepType.TakeCup && ko.isToGoCup != _order.isToGo)
 
 ---
 
-## Task 5: Пур-анимации (минимальные)
+## Task 5: Визуальный фидбэк (cup overlays, налив молока, частицы)
 
-Простейшие коротыши на корутинах — без сторонних тву-библиотек.
+3 независимых слоя фидбэка. Все сидят в `CookingScreenController` + один новый компонент `UIBurster`. Ни одна часть не блокирует следующую — можешь делать поэтапно.
 
-В `CookingScreenController` добавь поля `AnimLayer` ссылок:
+### Task 5a: Кружка на кофемашине (fade-in при выборе)
+
+**Идея:** при тапе по `CupHere` или `CupTakeaway` (тап-зона на полке) — соответствующая Image-кружка появляется на самой машине с плавным fade-in (alpha 0→1 за ~0.3 сек). Без анимации движения, просто прозрачность.
+
+**Сцена:** как ты уже сделал, на `CoffeeMachine` лежат скрытые дочерние Image:
+- `CupHere` — кружка «тут» (керамическая) на месте машины
+- `CupTakeAway` — стакан «с собой» на месте машины
+
+По дефолту оба `SetActive(false)`. Размер/позиция — ровно над «гнездом» машины, куда логически встаёт стакан.
+
+**Контроллер:** новые поля
 ```csharp
-[Header("Animations")]
-public Image flyingCup;       // выкл по умолчанию
-public Image coffeeStream;    // выкл
-public Image milkStream;      // выкл
-public RectTransform cupSlot; // куда летит стакан (на машине)
+public Image cupHereOnMachine;        // ссылка на CoffeeMachine/CupHere Image
+public Sprite cupHereEmpty;            // sprite пустой кружки
+public Sprite cupHereFull;             // sprite полной кружки (опционально)
+
+public Image cupTakeawayOnMachine;
+public Sprite cupTakeawayEmpty;
+public Sprite cupTakeawayFull;         // опционально
+
+public float cupFadeInDuration = 0.3f;
 ```
 
-Реализации (примерно):
-- `AnimateCupToMachine(RectTransform from)` — `flyingCup` появляется на позиции `from`, плавно (Lerp 0.4 сек) едет в `cupSlot`, выключается.
-- `AnimatePour(Image stream, float seconds)` — `stream` появляется (fillAmount=0→1 за `seconds`), потом выключается.
+**Логика:** при тапе на правильный CupHere/CupTakeaway → корутина `TakeCupSequence`:
+1. Выбирает нужный Image (по `_order.isToGo`)
+2. `SetActive(true)`, ставит alpha=0
+3. Лерпит alpha 0→1 за `cupFadeInDuration`
+4. AdvanceStep
 
-Вызывать из `TapActionThenAdvance` в зависимости от типа шага. Можно сделать общий метод `PlayAnimationForStep(CookingStep step, Action onDone)`.
+В `Bind()` — оба cup-overlay'я скрываются, sprites сбрасываются к Empty.
 
-**Если задержать — можно отложить на Task 10 (polish), на старте пусть просто WaitForSeconds.**
+### Task 5b: Налив молока (PourMilk / PourCream)
+
+**Идея:** PourMilk и PourCream — сейчас 0.3-сек авто-пропуски. Делаем из них 2.5-сек анимацию: показываем `PouringMilk` Image с лёгким пульсом scale (±1% sin-волна).
+
+**Сцена:** на `CoffeeMachine` уже есть дочерний `PouringMilk` Image. Скрыт по дефолту.
+
+**Контроллер:** новые поля
+```csharp
+public Image pouringMilkImage;
+public float milkPourDuration = 2.5f;
+public float pourPulseAmplitude = 0.01f;  // ±1%
+```
+
+**Логика:** в `ShowCurrentStep` для типов PourMilk/PourCream — НЕ запускать `AutoAdvanceAfter`, а корутину `PourMilkSequence`:
+1. `pouringMilkImage.SetActive(true)`
+2. Параллельно стартует `PulseScale` корутина (sin 8 Гц × pourPulseAmplitude)
+3. WaitForSeconds(milkPourDuration)
+4. `SetActive(false)`, AdvanceStep
+
+Остальные авто-шаги (TakeMilk, TakeCream) идут через прежний `AutoAdvanceAfter(autoStepDelay)`.
+
+### Task 5c: Частицы «DONE» (UIBurster)
+
+**Идея:** на каждый «положил в стакан» шаг — короткий взрыв шариков/звёздочек из позиции кружки. Без `ParticleSystem` (не дружит со Screen Space Overlay Canvas). Простой клон Image-шаблона + полёт по кругу + затухание.
+
+**Новый компонент:** `Assets/Scripts/UI/UIBurster.cs`
+
+```csharp
+using System.Collections;
+using UnityEngine;
+using UnityEngine.UI;
+
+namespace DrinkitGame.UI
+{
+    /// Простой «успех»-фидбэк: Burst() клонирует Image-шаблон N раз,
+    /// разбрасывает копии по кругу с затуханием.
+    public class UIBurster : MonoBehaviour
+    {
+        public Image template;        // шаблон, GameObject выключен
+        [Range(1, 32)] public int particleCount = 8;
+        [Range(10f, 400f)] public float radius = 80f;
+        [Range(0.2f, 2f)] public float duration = 0.7f;
+        [Range(0f, 1f)] public float angleJitter = 0.3f;
+        public Vector2 scaleStartEnd = new Vector2(1f, 0.5f);
+
+        public void Burst()
+        {
+            if (template == null) return;
+            var parent = template.transform.parent ?? transform;
+            var origin = template.rectTransform != null
+                ? template.rectTransform.anchoredPosition : Vector2.zero;
+            for (int i = 0; i < particleCount; i++)
+            {
+                float angle = (i / (float)particleCount) * Mathf.PI * 2f
+                              + Random.Range(-angleJitter, angleJitter);
+                var dir = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
+                var go = Instantiate(template.gameObject, parent);
+                go.SetActive(true);
+                StartCoroutine(Animate(go, origin, dir));
+            }
+        }
+
+        private IEnumerator Animate(GameObject p, Vector2 origin, Vector2 dir)
+        {
+            var rt = p.GetComponent<RectTransform>();
+            var img = p.GetComponent<Image>();
+            if (rt == null || img == null) { Destroy(p); yield break; }
+            rt.anchoredPosition = origin;
+            rt.localScale = Vector3.one * scaleStartEnd.x;
+            Color c = img.color; c.a = 1f; img.color = c;
+            float t = 0f;
+            while (t < duration)
+            {
+                t += Time.deltaTime;
+                float k = Mathf.Clamp01(t / duration);
+                float ease = 1f - (1f - k) * (1f - k);
+                rt.anchoredPosition = origin + dir * radius * ease;
+                rt.localScale = Vector3.one * Mathf.Lerp(scaleStartEnd.x, scaleStartEnd.y, k);
+                c.a = 1f - k; img.color = c;
+                yield return null;
+            }
+            Destroy(p);
+        }
+    }
+}
+```
+
+**Сцена:** на CoffeeMachine (или рядом с кружками) создай GameObject `SuccessBurster`:
+1. Внутрь положи Image-шаблон `Particle` (маленький белый шарик или звёздочка, sprite по вкусу), W=H=16, alpha 100%.
+2. `Particle` **выключи** (SetActive false).
+3. На `SuccessBurster` повесь `UIBurster`, перетащи `Particle` в поле **Template**.
+
+**Контроллер:** новое поле `public UIBurster successBurster;` и вызов `successBurster.Burst()` после каждого «положил в стакан» шага.
+
+### Какие шаги триггерят что
+
+| Тип шага | Cup→full sprite | UIBurster.Burst() | PouringMilk overlay |
+|---|---|---|---|
+| TakeCup | — | — | — |
+| GrindCoffee | — | — | — |
+| Extract | ✓ (если first fill) | ✓ | — |
+| AddHotWater | ✓ (если first fill) | ✓ | — |
+| SteamMilk/Cream | — | — | — |
+| PourMilk/Cream | ✓ (если first fill) | ✓ | ✓ (2.5 сек) |
+| PourOver | ✓ (если first fill) | ✓ | — |
+| AddSyrup | — | ✓ | — |
+| AddTopping | — | ✓ | — |
+| AddCacao | — | ✓ | — |
+| AddMatcha | — | ✓ | — |
+| Whisk | — | ✓ | — |
+| SetupFilter | — | — | — |
+| Deliver | — | — (отдельный результат-попап) | — |
+
+«Cup→full» срабатывает только ОДИН РАЗ за заказ — на первый встретившийся fill-шаг. Контроллер держит флаг `_cupFilled`.
 
 ---
 
@@ -591,6 +720,10 @@ private void SetObjectVisible(CookingStepType type, bool visible)
 6. **Двойной тап** → пока корутина `_stepInProgress = true` крутится, тапы игнорируются. Если кто-то добавит новый асинк-метод, не забудь выставить флаг.
 7. **`ServeButton.interactable = true` забыли отключить на нон-Deliver шагах** → можно «выдать» сырой кофе. ShowCurrentStep должен выставлять interactable.
 8. **Невидимые скрытые `KitchenObject`** оставлены в `kitchenObjects` списке — их `Handles()` тоже сработает, но `SetActive(false)` отключает их Button. ОК, ничего страшного.
+9. **Cup overlay на машине не fade-in'ится** — alpha канал Image после первого заказа застрял на 0. В `Bind()` мы сбрасываем `c.a = 1` на оба cup-image'а, и при следующем тапе fade стартует с 0 заново. Если не сбрасывается — проверь, что ссылки `cupHereOnMachine` / `cupTakeawayOnMachine` указывают именно на тот Image, который ты ожидаешь.
+10. **PouringMilk не показывается** — поле `pouringMilkImage` не назначено в инспекторе, контроллер тихо пропускает. Также: Image должен быть выключен по дефолту, иначе виден всегда. Контроллер сам включает/выключает через SetActive.
+11. **UIBurster плюётся одной частицей и стопится** — частица-шаблон не выключена в Hierarchy, поэтому Instantiate делает копию активного объекта, который сразу попадает в `Update`, но клон уничтожается через `duration`. Visual эффект всё равно работает, но «оригинал» болтается. Выключи шаблон Image в Hierarchy.
+12. **UIBurster частицы не видны** — Image-шаблон Color имеет alpha=0 (Unity default для List/inspector-color). Проверь, что у шаблона Color: 255,255,255,255.
 
 ---
 
@@ -606,6 +739,12 @@ private void SetObjectVisible(CookingStepType type, bool visible)
 - [ ] Скрытие лишних объектов в Bind() — FilterRack/WhiskTool/MatchaJar/CacaoJar/Syrup/Topping.
 - [ ] MiniGameOverlay — самый нижний ребёнок CookingScreenPanel.
 - [ ] CancelButton возвращает заказ через `ReinsertOrder()` (старая логика сохранена).
+- [ ] **5a:** на главном экране → выбрать заказ → тапнуть правильный стакан → кружка появилась на машине с fade-in.
+- [ ] **5a:** для эспрессо-«с собой» появляется именно `CupTakeAway`, для «тут» — `CupHere`.
+- [ ] **5a:** после первого «налив»-шага (Extract / AddHotWater / PourMilk / PourCream / PourOver) — спрайт кружки переключился на `*Full` (если задан).
+- [ ] **5b:** на капучино/латте/кацао — после M2 мини-игры видно `PouringMilk` 2.5 сек с лёгкой пульсацией.
+- [ ] **5c:** после каждого «положил в стакан» шага — burst-частиц от кружки. На TakeCup, GrindCoffee, SteamMilk, SetupFilter — НЕТ частиц.
+- [ ] **5c:** UIBurster.Particle template выключен в Hierarchy, Color alpha=255.
 
 ---
 
@@ -616,11 +755,16 @@ private void SetObjectVisible(CookingStepType type, bool visible)
 git add Assets/Scripts/Cooking/KitchenObject.cs \
         Assets/Scripts/Cooking/KitchenObject.cs.meta \
         Assets/Scripts/UI/CookingScreenController.cs \
+        Assets/Scripts/UI/UIBurster.cs \
+        Assets/Scripts/UI/UIBurster.cs.meta \
         Assets/Scenes/Main.unity
-git commit -m "feat(cooking): tactile cooking screen — tap kitchen objects instead of Advance
+git commit -m "feat(cooking): tactile cooking screen — tap objects + visual feedback
 
-Phase 13 — заменяем единый Advance-button на тапы по объектам кухни.
-Каждый объект декларирует обрабатываемые шаги через KitchenObject.handlesSteps.
-CookingScreenController активирует подходящие объекты на каждом шаге,
-авто-пропускает Take/Pour-шаги, включает ServeButton только на Deliver."
+Phase 13 — заменяем единый Advance-button на тапы по объектам кухни,
+плюс 3 слоя визуального фидбэка:
+- KitchenObject + handlesSteps[] + isToGoCup
+- CookingScreenController с авто-шагами, мини-играми, ServeButton
+- 5a: fade-in кружки на кофемашине после выбора + swap к Full после налива
+- 5b: PouringMilk overlay 2.5 сек с лёгким пульсом на PourMilk/PourCream
+- 5c: UIBurster — простые Image-частицы на 'положил в стакан' шагах"
 ```
