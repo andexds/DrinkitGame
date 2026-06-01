@@ -84,6 +84,17 @@ namespace DrinkitGame.UI
             SetActive(orderResultPopup, false);
             SetActive(wheelScreenPanel, false);
         }
+
+        /// Открыть магазин сразу на нужной вкладке (Recipes / Ingredients / Machine).
+        public void OpenStoreOnTab(StoreTab tab)
+        {
+            if (storeScreenPanel != null)
+            {
+                var ctrl = storeScreenPanel.GetComponent<StoreScreenController>();
+                if (ctrl != null) ctrl.DefaultTab = tab;
+            }
+            OpenStore();
+        }
         public void OpenWheel()
         {
             SetActive(mainScreenPanel, false);

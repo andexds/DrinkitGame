@@ -53,6 +53,11 @@ namespace DrinkitGame.UI
         [Header("Секции")]
         public List<Section> sections = new();
 
+        [Header("Клик → магазин")]
+        [Tooltip("Опционально: Button, при тапе на который открывается магазин " +
+                 "на вкладке «Ингредиенты». Обычно вешается на корневой объект всей сводки.")]
+        public Button openStoreButton;
+
         private GameStateManager _gsm;
 
         private void Start()
@@ -61,13 +66,23 @@ namespace DrinkitGame.UI
             if (_gsm == null) return;
 
             _gsm.Inventory.StockChanged += OnStockChanged;
+            if (openStoreButton != null)
+                openStoreButton.onClick.AddListener(OnOpenStoreClicked);
             Refresh();
+        }
+
+        private void OnOpenStoreClicked()
+        {
+            if (UIRouter.Instance != null)
+                UIRouter.Instance.OpenStoreOnTab(StoreTab.Ingredients);
         }
 
         private void OnDestroy()
         {
             if (_gsm == null) return;
             _gsm.Inventory.StockChanged -= OnStockChanged;
+            if (openStoreButton != null)
+                openStoreButton.onClick.RemoveListener(OnOpenStoreClicked);
         }
 
         private void OnStockChanged(string productId, int newCount) => Refresh();

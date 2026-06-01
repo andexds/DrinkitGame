@@ -3,9 +3,20 @@ using UnityEngine.UI;
 
 namespace DrinkitGame.UI
 {
+    /// Логические индексы вкладок магазина (передаются в OpenStoreOnTab).
+    public enum StoreTab
+    {
+        Recipes = 0,
+        Ingredients = 1,
+        Machine = 2
+    }
+
     /// Главный контроллер магазина: переключает 3 вкладки.
     public class StoreScreenController : MonoBehaviour
     {
+        /// Какая вкладка должна открыться при следующем активации экрана. По умолчанию — Recipes.
+        /// Внешние входы (UIRouter.OpenStoreOnTab) выставляют это значение перед SetActive.
+        public StoreTab DefaultTab { get; set; } = StoreTab.Recipes;
         [Header("Tab buttons")]
         public Button recipesTabButton;
         public Button ingredientsTabButton;
@@ -29,10 +40,13 @@ namespace DrinkitGame.UI
 
         private void OnEnable()
         {
-            ShowTab(0);
+            ShowTab((int)DefaultTab);
+            // После показа сбрасываем, чтобы следующий явный OpenStore() (без указания вкладки)
+            // открывал привычно «Рецепты».
+            DefaultTab = StoreTab.Recipes;
         }
 
-        private void ShowTab(int index)
+        public void ShowTab(int index)
         {
             if (recipesContent != null) recipesContent.SetActive(index == 0);
             if (ingredientsContent != null) ingredientsContent.SetActive(index == 1);
