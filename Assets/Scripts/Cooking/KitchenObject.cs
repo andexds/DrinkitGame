@@ -57,12 +57,34 @@ namespace DrinkitGame.Cooking
 
         private Button _button;
         private Coroutine _hintCoroutine;
+        private bool _wantHint; // последнее запрошенное состояние, для defense через OnEnable
 
         private void Awake()
         {
             _button = GetComponent<Button>();
             _button.onClick.AddListener(OnClicked);
             SetActive(false); // по умолчанию неактивен, контроллер включит когда нужен шаг
+        }
+
+        private void OnEnable()
+        {
+            // Если SetActive(true) был вызван пока GameObject был неактивен (например, Bind
+            // отработал до того, как CookingScreenPanel стал активным), корутина не стартанула.
+            // Поднимаем её сейчас, когда мы уж точно активны.
+            if (_wantHint && hint != null && _hintCoroutine == null)
+                _hintCoroutine = StartCoroutine(ShowHintAfterDelay());
+        }
+
+        private void OnDisable()
+        {
+            // Unity всё равно останавливает корутины на неактивных объектах — чистим
+            // ссылку, чтобы при следующем OnEnable мы корректно перезапустили.
+            _hintCoroutine = null;
+            if (hint != null)
+            {
+                hint.gameObject.SetActive(false);
+                hint.rectTransform.localScale = Vector3.one;
+            }
         }
 
         private void OnDestroy()
@@ -96,7 +118,12 @@ namespace DrinkitGame.Cooking
                 hint.rectTransform.localScale = Vector3.one;
             }
 
-            // Если объект активирован — запустим таймер показа hint.
+            // Запоминаем желаемое состояние — OnEnable использует, если запустить корутину
+            // прямо сейчас не получается (мы или родитель неактивны).
+            _wantHint = active;
+
+            // Если объект уже активен в иерархии — стартуем сразу.
+            // Если нет — стартует OnEnable когда нас активируют.
             if (active && hint != null && gameObject.activeInHierarchy)
             {
                 _hintCoroutine = StartCoroutine(ShowHintAfterDelay());

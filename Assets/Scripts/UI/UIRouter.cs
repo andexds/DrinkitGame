@@ -53,12 +53,15 @@ namespace DrinkitGame.UI
 
         public void OpenCooking(Order order)
         {
-            if (cookingController != null) cookingController.Bind(order);
+            // ВАЖНО: активируем cookingScreenPanel ДО вызова Bind. Иначе при Bind →
+            // ShowCurrentStep → KitchenObject.SetActive(true) объект ещё неактивен
+            // в иерархии, и StartCoroutine для хинта не стартует.
             SetActive(mainScreenPanel, false);
-            SetActive(cookingScreenPanel, true);
             SetActive(orderResultPopup, false);
             SetActive(storeScreenPanel, false);
             SetActive(wheelScreenPanel, false);
+            SetActive(cookingScreenPanel, true);
+            if (cookingController != null) cookingController.Bind(order);
         }
 
         public void ShowOrderResult(OrderResolution resolution)
