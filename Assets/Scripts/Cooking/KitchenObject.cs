@@ -1,33 +1,39 @@
 using System;
-using DrinkitGame.Cooking;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace DrinkitGame.Cooking
 {
     /// Тап-зона на сцене готовки (кофемолка, машина, фильтр, банка сиропа и т.п.).
-    /// Декларирует, какой шаг CookingFlow она «закрывает» при тапе.
-    /// CookingScreenController сам решает, активна она сейчас или нет.
+    /// Декларирует, какие типы шагов CookingFlow она «закрывает» при тапе.
+    /// CookingScreenController сам решает, активна она сейчас или нет, и подключает обработчик.
     [RequireComponent(typeof(Button))]
     public class KitchenObject : MonoBehaviour
     {
-        [Tooltip("Какие типы шагов закрывает этот объект. Обычно 1–2 (например, " +
-                 "CoffeeMachine: Extract + AddHotWater).")]
+        [Tooltip("Какие типы шагов закрывает этот объект. Обычно 1–2 значения, но Topping " +
+                 "может одновременно отвечать за AddSyrup + AddTopping + AddCacao + AddMatcha.")]
         public CookingStepType[] handlesSteps;
 
-        [Tooltip("GameObject подсветки/обводки — включается когда объект активен. " +
-                 "Можно оставить null если подсветки нет.")]
+        [Header("TakeCup only")]
+        [Tooltip("Только для шага TakeCup: true = стакан 'с собой', false = 'тут'. " +
+                 "Контроллер сверяет с order.isToGo — если не совпало, тап игнорируется.")]
+        public bool isToGoCup;
+
+        [Header("Visual")]
+        [Tooltip("Дочерний GameObject подсветки (обводка/glow). Включается когда объект активен. " +
+                 "Можно оставить null если без подсветки.")]
         public GameObject highlight;
 
-        [Tooltip("Опционально: затемняем CanvasGroup когда объект не активен. " +
+        [Tooltip("Опционально: CanvasGroup на этом же объекте — затемняется когда объект не активен. " +
                  "Если null — alpha не меняется, только highlight.")]
         public CanvasGroup canvasGroup;
 
-        [Tooltip("Прозрачность когда объект НЕ активен (0..1). Обычно 0.4.")]
+        [Tooltip("Прозрачность когда объект НЕ активен (0..1). По умолчанию 0.4.")]
         [Range(0f, 1f)]
         public float inactiveAlpha = 0.4f;
 
-        /// Срабатывает по тапу. Подписывается CookingScreenController.
+        /// Срабатывает по тапу, только если объект сейчас активен.
+        /// Подписывается CookingScreenController в Awake.
         public event Action Tapped;
 
         private Button _button;
@@ -36,7 +42,7 @@ namespace DrinkitGame.Cooking
         {
             _button = GetComponent<Button>();
             _button.onClick.AddListener(OnClicked);
-            SetActive(false);
+            SetActive(false); // по умолчанию неактивен, контроллер включит когда нужен шаг
         }
 
         private void OnDestroy()
@@ -46,11 +52,10 @@ namespace DrinkitGame.Cooking
 
         private void OnClicked()
         {
-            // Тап считается только если объект сейчас «вооружён».
-            if (_button.interactable) Tapped?.Invoke();
+            if (_button != null && _button.interactable) Tapped?.Invoke();
         }
 
-        /// Включить/выключить объект как активную тап-зону для текущего шага.
+        /// Включить/выключить объект как активную тап-зону.
         public void SetActive(bool active)
         {
             if (_button != null) _button.interactable = active;
