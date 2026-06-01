@@ -96,6 +96,15 @@ namespace DrinkitGame.Mascot
             _hideBubbleCoroutine = StartCoroutine(HideBubbleAfter(bubbleVisibleSeconds));
         }
 
+        private void OnDisable()
+        {
+            // Когда маскот скрывается (ушли с главного экрана), корутина авто-скрытия
+            // пузыря останавливается Unity и не доживает до HideBubble. Прячем пузырь здесь,
+            // иначе он «зависает» видимым при возврате на экран.
+            HideBubble();
+            _hideBubbleCoroutine = null;
+        }
+
         public void HideBubble()
         {
             if (speechBubbleRoot != null) speechBubbleRoot.SetActive(false);
