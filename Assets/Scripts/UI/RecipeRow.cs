@@ -41,18 +41,18 @@ namespace DrinkitGame.UI
             switch (availability)
             {
                 case PurchaseAvailability.AlreadyOwned:
-                    status = "✓ Открыт";
+                    status = "Открыт";
                     buyText = "—";
                     break;
                 case PurchaseAvailability.NeedsHigherMachine:
                     status = $"Нужна машина T{recipe.requiredMachineTier.tierIndex}";
-                    buyText = "🔒";
+                    buyText = "Закрыто";
                     break;
                 case PurchaseAvailability.NeedsMoreSales:
                     status = string.IsNullOrEmpty(recipe.unlockQuestDescription)
                         ? "Выполни условие"
                         : recipe.unlockQuestDescription;
-                    buyText = "🔒";
+                    buyText = "Закрыто";
                     break;
                 case PurchaseAvailability.NotEnoughMoney:
                     status = "Не хватает денег";

@@ -7,8 +7,8 @@ namespace DrinkitGame.Core
     public class OrderService
     {
         public const int SlotCount = 3;
-        public const float SpawnDelayMin = 5f;
-        public const float SpawnDelayMax = 15f;
+        public const float SpawnDelayMin = 1f;
+        public const float SpawnDelayMax = 3f;
         public const float Patience = 300f;        // 5 минут
         public const float ReputationLossOnAbandon = 0.1f;
 
@@ -28,6 +28,10 @@ namespace DrinkitGame.Core
         public event Action<Order> OrderAbandoned;
         public event Action<int> OrderRemoved;    // slot освобождён по любой причине
         public event Action<int, float> SlotPatienceTick;
+
+        /// Стреляет когда есть свободный слот и подошло время спавна, но сгенерировать заказ
+        /// не удалось (обычно: кончились зёрна/расходники). UI показывает подсказку «купи в магазине».
+        public event Action CannotSpawnNoIngredients;
 
         public OrderService(
             OrderGenerator generator,
@@ -112,6 +116,11 @@ namespace DrinkitGame.Core
                 newOrder.remainingPatience = Patience;
                 _slots[freeIndex] = newOrder;
                 OrderSpawned?.Invoke(newOrder);
+            }
+            else
+            {
+                // Нечего готовить (нет ингредиентов) — сигналим UI, чтобы подсказал купить.
+                CannotSpawnNoIngredients?.Invoke();
             }
 
             // Сбрасываем таймер вне зависимости от того, удалось ли сгенерить.

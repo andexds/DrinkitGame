@@ -50,6 +50,7 @@ namespace DrinkitGame.Mascot
             _gsm.Recipes.RecipeUnlocked += OnRecipeUnlocked;
             _gsm.Machine.Upgraded += OnMachineUpgraded;
             _gsm.Wheel.Spun += OnWheelSpun;
+            _gsm.Orders.CannotSpawnNoIngredients += OnCannotSpawn;
         }
 
         private void OnDestroy()
@@ -60,6 +61,18 @@ namespace DrinkitGame.Mascot
             _gsm.Recipes.RecipeUnlocked -= OnRecipeUnlocked;
             _gsm.Machine.Upgraded -= OnMachineUpgraded;
             _gsm.Wheel.Spun -= OnWheelSpun;
+            _gsm.Orders.CannotSpawnNoIngredients -= OnCannotSpawn;
+        }
+
+        // Сигнал «нечего готовить» приходит каждые ~3 сек, пока нет зёрен. Троттлим,
+        // чтобы Дринчик не повторял фразу постоянно: не чаще раза в 12 сек.
+        private float _lastNoIngredientsHintTime = -999f;
+
+        private void OnCannotSpawn()
+        {
+            if (Time.time - _lastNoIngredientsHintTime < 12f) return;
+            _lastNoIngredientsHintTime = Time.time;
+            Say("Кончились зёрна! Купи в магазине", MascotEmotion.Pointing);
         }
 
         public void SetEmotion(MascotEmotion emotion)
