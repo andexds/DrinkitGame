@@ -40,6 +40,11 @@ namespace DrinkitGame.Mascot
                  "Эмоции без визуала показываются цветным плейсхолдером.")]
         public List<EmotionVisual> visuals = new();
 
+        [Header("Editor Preview (no effect in Play)")]
+        [Tooltip("Эмоция для превью в Edit-моде. Меняй в инспекторе — Scene-окно обновится. " +
+                 "В Play-моде это поле игнорируется, SetEmotion управляется сервисами.")]
+        public MascotEmotion previewEmotion = MascotEmotion.Idle;
+
         [Header("Speech bubble")]
         public GameObject speechBubbleRoot;
         public TMP_Text speechText;
@@ -176,6 +181,59 @@ namespace DrinkitGame.Mascot
                 yield return wait;
             }
         }
+
+#if UNITY_EDITOR
+        /// Превью в Edit-моде: показывает визуал previewEmotion прямо в Scene-окне,
+        /// без запуска Play. Анимация не крутится (в Edit нет Update-цикла), показываем
+        /// первый кадр; статика и цвет-плейсхолдер работают полностью.
+        private void OnValidate()
+        {
+            if (Application.isPlaying) return;
+
+            // delayCall — чтобы не пытаться менять сцену прямо в OnValidate
+            // (Unity иначе кидает warning «SendMessage during OnValidate»).
+            UnityEditor.EditorApplication.delayCall -= ApplyEditorPreview;
+            UnityEditor.EditorApplication.delayCall += ApplyEditorPreview;
+        }
+
+        private void ApplyEditorPreview()
+        {
+            // Объект мог быть уже удалён к моменту срабатывания delayCall.
+            if (this == null) return;
+            if (Application.isPlaying) return;
+            if (bodyImage == null) return;
+
+            var visual = FindVisual(previewEmotion);
+            Sprite preview = null;
+            if (visual != null)
+            {
+                if (visual.animationFrames != null && visual.animationFrames.Length > 0)
+                    preview = visual.animationFrames[0];
+                else
+                    preview = visual.staticSprite;
+            }
+
+            if (preview != null)
+            {
+                bodyImage.sprite = preview;
+                bodyImage.color = Color.white;
+                if (bodyLabel != null) bodyLabel.gameObject.SetActive(false);
+            }
+            else
+            {
+                bodyImage.sprite = null;
+                bodyImage.color = ColorForEmotion(previewEmotion);
+                if (bodyLabel != null)
+                {
+                    bodyLabel.gameObject.SetActive(true);
+                    bodyLabel.text = LabelForEmotion(previewEmotion);
+                }
+            }
+
+            // Помечаем сцену как изменённую, чтобы Unity её сохранил.
+            UnityEditor.EditorUtility.SetDirty(bodyImage);
+        }
+#endif
 
         public void Say(string text, MascotEmotion emotion = MascotEmotion.Idle)
         {

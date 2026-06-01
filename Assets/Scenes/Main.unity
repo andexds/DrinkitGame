@@ -348,6 +348,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   bodyImage: {fileID: 25141916}
   bodyLabel: {fileID: 1895119560}
+  visuals:
+  - emotion: 0
+    staticSprite: {fileID: 21300000, guid: fd8d7e06d787849bb94d0ccd303b2740, type: 3}
+    animationFrames: []
+    fps: 0
   speechBubbleRoot: {fileID: 1925542677}
   speechText: {fileID: 480234816}
   bubbleVisibleSeconds: 3
