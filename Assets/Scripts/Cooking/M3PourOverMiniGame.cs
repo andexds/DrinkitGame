@@ -9,9 +9,15 @@ namespace DrinkitGame.Cooking
 {
     /// Мини-игра M3: long-tap нужной длительности.
     /// Игрок удерживает кнопку. Прогресс растёт. Цель — отпустить в "зелёной зоне" длительности.
+    /// Прогресс реализован через изменение sizeDelta.x RectTransform'а (не Image.fillAmount),
+    /// чтобы скруглённые углы спрайта (Sliced/Simple) не резались.
+    /// Pivot Image должен стоять слева (X=0), тогда полоска растёт слева направо.
     public class M3PourOverMiniGame : MonoBehaviour, IMiniGame
     {
         [Header("UI")]
+        [Tooltip("Image полоски прогресса. Image Type = Simple или Sliced (НЕ Filled). " +
+                 "Pivot RectTransform = (0, 0.5) — слева. " +
+                 "Размер в инспекторе = полная ширина полоски (запоминается на Awake).")]
         public Image progressFill;
         public RectTransform greenZoneOverlay;
         public Button holdButton;
@@ -27,9 +33,13 @@ namespace DrinkitGame.Cooking
         private float _heldSeconds;
         private bool _running;
         private bool _holding;
+        private Vector2 _fullSize; // запомненный sizeDelta полоски при старте сцены
 
         private void Awake()
         {
+            if (progressFill != null)
+                _fullSize = progressFill.rectTransform.sizeDelta;
+
             if (holdButton != null)
             {
                 var trigger = holdButton.gameObject.GetComponent<EventTrigger>();
@@ -75,16 +85,23 @@ namespace DrinkitGame.Cooking
 
         private void UpdateProgress()
         {
-            if (progressFill != null) progressFill.fillAmount = _heldSeconds / maxDuration;
+            if (progressFill == null) return;
+            // Меняем только ширину: высота остаётся как в инспекторе.
+            float progress = _heldSeconds / maxDuration;
+            var size = _fullSize;
+            size.x = _fullSize.x * progress;
+            progressFill.rectTransform.sizeDelta = size;
         }
 
         private void UpdateZoneOverlay()
         {
-            if (greenZoneOverlay == null || progressFill == null) return;
-            var rect = progressFill.rectTransform.rect;
-            float w = _zoneWidth * rect.width;
+            if (greenZoneOverlay == null) return;
+            // Используем _fullSize, а не текущий rect полоски (он меняется при заливке).
+            // ВАЖНО: greenZoneOverlay должен быть сиблингом progressFill (на том же контейнере),
+            // а не его дочерним — иначе при смене ширины зона поедет.
+            float w = _zoneWidth * _fullSize.x;
             float zoneCenter = targetDuration / maxDuration;
-            float x = -rect.width * 0.5f + zoneCenter * rect.width;
+            float x = -_fullSize.x * 0.5f + zoneCenter * _fullSize.x;
             greenZoneOverlay.anchoredPosition = new Vector2(x, greenZoneOverlay.anchoredPosition.y);
             greenZoneOverlay.sizeDelta = new Vector2(w, greenZoneOverlay.sizeDelta.y);
         }

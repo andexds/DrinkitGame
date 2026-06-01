@@ -8,10 +8,16 @@ using UnityEngine.UI;
 namespace DrinkitGame.Cooking
 {
     /// Мини-игра M2: hold-to-fill, отпускай в зелёной зоне.
+    /// Налив реализован через изменение sizeDelta.y RectTransform'а (не Image.fillAmount),
+    /// чтобы скруглённые углы спрайта (Sliced или Simple) не резались.
+    /// Pivot Image должен стоять снизу (Y=0), тогда полоска растёт снизу вверх.
     public class M2MilkSteamingMiniGame : MonoBehaviour, IMiniGame
     {
         [Header("UI")]
-        public Image fillImage;              // image с Image Type=Filled, Vertical
+        [Tooltip("Image полоски молока. Image Type = Simple или Sliced (НЕ Filled). " +
+                 "Pivot RectTransform = (0.5, 0) — снизу. " +
+                 "Размер в инспекторе = полная высота полоски (запоминается на Awake).")]
+        public Image fillImage;
         public RectTransform greenZoneOverlay;
         public Button holdButton;            // нужен EventTrigger для PointerDown/Up
         public TMP_Text instructionLabel;
@@ -27,9 +33,15 @@ namespace DrinkitGame.Cooking
         private float _fill;
         private bool _running;
         private bool _holding;
+        private Vector2 _fullSize; // запомненный sizeDelta полоски при старте сцены
 
         private void Awake()
         {
+            // Запоминаем «полный размер» полоски — то, что задано в инспекторе.
+            // Дальше масштабируем по высоте от 0 до _fullSize.y.
+            if (fillImage != null)
+                _fullSize = fillImage.rectTransform.sizeDelta;
+
             // Добавляем EventTrigger программно
             if (holdButton != null)
             {
@@ -74,15 +86,21 @@ namespace DrinkitGame.Cooking
 
         private void UpdateFill()
         {
-            if (fillImage != null) fillImage.fillAmount = _fill;
+            if (fillImage == null) return;
+            // Меняем только высоту: ширина остаётся как в инспекторе.
+            var size = _fullSize;
+            size.y = _fullSize.y * _fill;
+            fillImage.rectTransform.sizeDelta = size;
         }
 
         private void UpdateZoneOverlay()
         {
-            if (greenZoneOverlay == null || fillImage == null) return;
-            var rect = fillImage.rectTransform.rect;
-            float zoneH = _zoneWidth * rect.height;
-            float yCenter = -rect.height * 0.5f + zoneCenter * rect.height;
+            if (greenZoneOverlay == null) return;
+            // Используем _fullSize, а не текущий rect полоски (он меняется при наливе).
+            // ВАЖНО: greenZoneOverlay должен быть сиблингом fillImage (на том же контейнере),
+            // а не его дочерним — иначе при смене размера fillImage зона тоже поедет.
+            float zoneH = _zoneWidth * _fullSize.y;
+            float yCenter = -_fullSize.y * 0.5f + zoneCenter * _fullSize.y;
             greenZoneOverlay.anchoredPosition = new Vector2(greenZoneOverlay.anchoredPosition.x, yCenter);
             greenZoneOverlay.sizeDelta = new Vector2(greenZoneOverlay.sizeDelta.x, zoneH);
         }
