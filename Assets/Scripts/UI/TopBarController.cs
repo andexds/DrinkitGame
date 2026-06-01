@@ -14,6 +14,10 @@ namespace DrinkitGame.UI
 
         private GameStateManager _gsm;
 
+        // true, когда заказы не спавнятся из-за нехватки ингредиентов — тогда в строке
+        // статуса показываем предупреждение вместо обычной цели.
+        private bool _noIngredients;
+
         private void Start()
         {
             _gsm = GameStateManager.Instance;
@@ -33,6 +37,10 @@ namespace DrinkitGame.UI
             _gsm.Recipes.RecipeUnlocked += _ => RefreshGoal();
             _gsm.Machine.Upgraded += _ => RefreshGoal();
 
+            // Нехватка ингредиентов: ставим предупреждение; пополнение склада снимает его.
+            _gsm.Orders.CannotSpawnNoIngredients += OnCannotSpawn;
+            _gsm.Inventory.StockChanged += OnStockChanged;
+
             // Первый рендер
             OnBalanceChanged(_gsm.Economy.Balance);
             OnReputationChanged(_gsm.Reputation.Reputation);
@@ -44,7 +52,24 @@ namespace DrinkitGame.UI
             if (_gsm == null) return;
             _gsm.Economy.BalanceChanged -= OnBalanceChanged;
             _gsm.Reputation.ReputationChanged -= OnReputationChanged;
+            _gsm.Orders.CannotSpawnNoIngredients -= OnCannotSpawn;
+            _gsm.Inventory.StockChanged -= OnStockChanged;
             // Лямбды не отписываются по делегату — для прототипа допустимо: GSM умирает вместе со сценой.
+        }
+
+        private void OnCannotSpawn()
+        {
+            if (_noIngredients) return;
+            _noIngredients = true;
+            RefreshGoal();
+        }
+
+        private void OnStockChanged(string productId, int newCount)
+        {
+            // Любое пополнение склада — снимаем предупреждение и пробуем спавнить снова.
+            if (!_noIngredients) return;
+            _noIngredients = false;
+            RefreshGoal();
         }
 
         private void OnBalanceChanged(int newBalance)
@@ -60,6 +85,14 @@ namespace DrinkitGame.UI
         private void RefreshGoal()
         {
             if (goalLabel == null || _gsm == null) return;
+
+            // Приоритет — предупреждение о нехватке ингредиентов.
+            if (_noIngredients)
+            {
+                goalLabel.text = "Кончились зёрна! Купи в магазине";
+                return;
+            }
+
             var goal = _gsm.GoalTracker.CurrentGoal();
             goalLabel.text = string.IsNullOrEmpty(goal.ProgressLabel)
                 ? goal.Description
