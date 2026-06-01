@@ -122,12 +122,14 @@ namespace DrinkitGame.UI
             if (orderSummaryLabel != null)
                 orderSummaryLabel.text = BuildSummary(order);
 
-            // Прячем тап-зоны, не нужные для рецепта.
-            ConfigureVisibilityFor(order);
-
             // Сбрасываем визуал-фидбэк к стартовому состоянию.
             ResetCupOverlays();
             if (pouringMilkImage != null) pouringMilkImage.gameObject.SetActive(false);
+
+            // Ставим спавн на паузу — иначе пока готовишь, в твоём слоте успевает
+            // появиться следующий заказ ещё до выдачи. Включаем обратно в CompleteOrder/OnCancel.
+            var gsm = GameStateManager.Instance;
+            if (gsm != null && gsm.Orders != null) gsm.Orders.SpawnEnabled = false;
 
             ShowCurrentStep();
         }
@@ -142,27 +144,7 @@ namespace DrinkitGame.UI
             }
         }
 
-        // === Видимость тап-зон ===
-
-        private void ConfigureVisibilityFor(Order order)
-        {
-            var neededTypes = new HashSet<CookingStepType>();
-            foreach (var step in _steps) neededTypes.Add(step.type);
-
-            foreach (var ko in kitchenObjects)
-            {
-                if (ko == null) continue;
-                bool needed = false;
-                if (ko.handlesSteps != null)
-                {
-                    foreach (var type in ko.handlesSteps)
-                    {
-                        if (neededTypes.Contains(type)) { needed = true; break; }
-                    }
-                }
-                ko.gameObject.SetActive(needed);
-            }
-        }
+        // === Активация тап-зон по шагу ===
 
         private void ShowCurrentStep()
         {
@@ -178,12 +160,13 @@ namespace DrinkitGame.UI
             if (serveButton != null)
                 serveButton.interactable = step.type == CookingStepType.Deliver;
 
-            // Активируем тап-зоны
+            // Активируем тап-зоны. Объекты, чьи handlesSteps не покрывают текущий шаг,
+            // получают SetActive(false) — Button.interactable=false, canvasGroup.alpha=0.4.
+            // GameObject НЕ выключаем, чтобы Horizontal/Vertical Layout Group не схлопывались.
             foreach (var ko in kitchenObjects)
             {
                 if (ko == null) continue;
-                bool active = ko.gameObject.activeSelf && ko.Handles(step.type);
-                ko.SetActive(active);
+                ko.SetActive(ko.Handles(step.type));
             }
 
             // PourMilk / PourCream — своя удлинённая анимация
@@ -422,6 +405,8 @@ namespace DrinkitGame.UI
             if (_order == null) { UIRouter.Instance.ShowMain(); return; }
             var gsm = GameStateManager.Instance;
             gsm.Orders.ReinsertOrder(_order);
+            // Отмена — никакого cooldown'а, сразу включаем спавн обратно.
+            gsm.Orders.SpawnEnabled = true;
             UIRouter.Instance.ShowMain();
             _order = null;
         }
@@ -435,6 +420,11 @@ namespace DrinkitGame.UI
             float elapsed = OrderService.Patience - _order.remainingPatience;
 
             var resolution = gsm.OrderResolution.Complete(_order, quality, elapsed);
+
+            // Включаем спавн + ставим cooldown 5 сек, чтобы между «выдал» и
+            // «прилетел новый» был передых.
+            gsm.Orders.SpawnEnabled = true;
+            gsm.Orders.NotifyOrderCompleted();
 
             UIRouter.Instance.ShowMain();
             UIRouter.Instance.ShowOrderResult(resolution);

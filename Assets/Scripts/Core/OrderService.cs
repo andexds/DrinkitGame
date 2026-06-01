@@ -12,6 +12,10 @@ namespace DrinkitGame.Core
         public const float Patience = 300f;        // 5 минут
         public const float ReputationLossOnAbandon = 0.1f;
 
+        /// Сколько секунд НЕ спавнить новые заказы после успешной выдачи (между
+        /// «выдал» и «прилетел новый» дать игроку передых). Можно увеличить/уменьшить.
+        public const float PostDeliveryCooldown = 5f;
+
         private readonly Order[] _slots = new Order[SlotCount];
         private readonly OrderGenerator _generator;
         private readonly ReputationService _reputation;
@@ -19,9 +23,11 @@ namespace DrinkitGame.Core
 
         private float _spawnTimer;
         private bool _spawnTimerActive;
+        private float _postDeliveryCooldownRemaining;
 
         /// Когда false — новые заказы не появляются (например, во время онбординга
-        /// до шага «жди клиента»). Тик терпения для уже существующих заказов продолжается.
+        /// до шага «жди клиента» или пока игрок на экране готовки).
+        /// Тик терпения для уже существующих заказов продолжается.
         public bool SpawnEnabled = true;
 
         public event Action<Order> OrderSpawned;
@@ -86,7 +92,15 @@ namespace DrinkitGame.Core
                 }
             }
 
-            // 2. Спавн нового, если есть свободный слот
+            // 2. Cooldown после выдачи — не спавним, но таймер кулдауна тикает
+            if (_postDeliveryCooldownRemaining > 0)
+            {
+                _postDeliveryCooldownRemaining -= deltaTime;
+                _spawnTimerActive = false;
+                return;
+            }
+
+            // 3. Спавн нового, если есть свободный слот
             if (!SpawnEnabled)
             {
                 _spawnTimerActive = false;
@@ -145,6 +159,14 @@ namespace DrinkitGame.Core
         {
             _spawnTimer = 0f;
             _spawnTimerActive = true;
+            _postDeliveryCooldownRemaining = 0f; // immediate spawn перебивает cooldown
+        }
+
+        /// Вызывается после успешной выдачи заказа. Включает PostDeliveryCooldown,
+        /// чтобы следующий клиент пришёл не сразу.
+        public void NotifyOrderCompleted()
+        {
+            _postDeliveryCooldownRemaining = PostDeliveryCooldown;
         }
 
         /// Положить заказ обратно в слот (например, если игрок отменил готовку).
