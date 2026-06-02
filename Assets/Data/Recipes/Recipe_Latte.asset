@@ -30,5 +30,5 @@ MonoBehaviour:
   - {fileID: 11400000, guid: f64efe530e43f44ec8ace79f98afabf9, type: 2}
   canBeToGo: 1
   unlockQuestTargetRecipe: {fileID: 11400000, guid: 542fbaedde4fc450689f7b0191d5eb17, type: 2}
-  unlockQuestTargetCount: 15
-  unlockQuestDescription: "\u041F\u0440\u043E\u0434\u0430\u0439 15 \u043A\u0430\u043F\u0443\u0447\u0438\u043D\u043E"
+  unlockQuestTargetCount: 3
+  unlockQuestDescription: "\u041F\u0440\u043E\u0434\u0430\u0439 3 \u043A\u0430\u043F\u0443\u0447\u0438\u043D\u043E"
