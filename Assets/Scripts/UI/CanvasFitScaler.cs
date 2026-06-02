@@ -3,56 +3,57 @@ using UnityEngine.UI;
 
 namespace DrinkitGame.UI
 {
-    /// Делает Canvas Scaler «тупо масштабирующим»: что бы ни было на экране,
-    /// весь UI заверстаный под reference resolution просто зумится так, чтобы
-    /// влезть. Никакого relayout — если экран другой аспект, появятся «полосы»
-    /// сверху-снизу или по бокам, но позиции/пропорции элементов остаются как
-    /// были в дизайне.
+    /// Строгий letterbox-зум для UI: внутренний ContentRoot всегда держит размер
+    /// referenceResolution (375×812 по дефолту), масштабируется как единое целое
+    /// чтобы поместиться в Canvas, центрируется. Лишние пиксели по краям экрана
+    /// = «полосы» (показывают то, что лежит за Canvas, обычно фон).
     ///
-    /// Привяжи на Canvas (тот же GameObject, где висит Canvas Scaler).
-    /// Reference Resolution в Canvas Scaler оставь как у тебя в дизайне
-    /// (например 393×852 = iPhone 16 portrait).
-    /// Screen Match Mode будет автоматически переключаться между Width и Height.
-    [RequireComponent(typeof(CanvasScaler))]
-    [ExecuteAlways] // обновляется и в Edit Mode, чтобы видеть превью в редакторе
+    /// Использование:
+    /// 1. Под твоим Canvas создай пустой GameObject ContentRoot (UI → empty).
+    /// 2. Перенеси под ContentRoot ВСЕ существующие панели (MainScreenPanel,
+    ///    CookingScreenPanel, StoreScreenPanel, WheelScreenPanel, OrderResultPopup,
+    ///    TabBar, OnboardingOverlay и т.д.).
+    /// 3. На Canvas повесь этот скрипт. В поле Content Root перетащи ContentRoot.
+    /// 4. CanvasScaler оставь в Scale With Screen Size, Reference Res 375×812 —
+    ///    скрипт перепишет настройки RectTransform у ContentRoot, остальное не трогает.
+    [ExecuteAlways]
     public class CanvasFitScaler : MonoBehaviour
     {
-        private CanvasScaler _scaler;
+        [Tooltip("RectTransform, в котором лежат все панели UI. Скрипт фиксирует его " +
+                 "размер на referenceResolution и масштабирует чтобы вписаться в Canvas.")]
+        public RectTransform contentRoot;
 
-        private void OnEnable()
+        [Tooltip("Дизайн-разрешение, в котором ты делал верстку. UI будет всегда " +
+                 "выглядеть как при этом разрешении, только зум меняется.")]
+        public Vector2 referenceResolution = new Vector2(375, 812);
+
+        private void OnEnable() => Apply();
+        private void Update() => Apply();
+
+        private void Apply()
         {
-            _scaler = GetComponent<CanvasScaler>();
-            ApplyMatch();
-        }
+            if (contentRoot == null) return;
 
-        private void Update()
-        {
-            ApplyMatch();
-        }
+            // 1. ContentRoot всегда фиксированного размера, центрирован.
+            contentRoot.anchorMin = new Vector2(0.5f, 0.5f);
+            contentRoot.anchorMax = new Vector2(0.5f, 0.5f);
+            contentRoot.pivot     = new Vector2(0.5f, 0.5f);
+            contentRoot.anchoredPosition = Vector2.zero;
+            contentRoot.sizeDelta = referenceResolution;
 
-        private void ApplyMatch()
-        {
-            if (_scaler == null) return;
-            // Принудительно ставим режим Scale With Screen Size + Match Width Or Height.
-            _scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            _scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
+            // 2. Считаем масштаб «fit» — чтобы 375×812 поместилось в Canvas
+            //    без обрезки. По меньшей оси заполняем, по большей появятся полосы.
+            var canvasRT = transform as RectTransform;
+            if (canvasRT == null) return;
+            float canvasW = canvasRT.rect.width;
+            float canvasH = canvasRT.rect.height;
+            if (canvasW <= 0f || canvasH <= 0f) return;
 
-            // Полное имя UnityEngine.Screen чтобы не конфликтовать с enum Screen
-            // из DrinkitGame.UI (объявлен в UIRouter для навигации между экранами).
-            float screenW = UnityEngine.Screen.width;
-            float screenH = UnityEngine.Screen.height;
-            if (screenW <= 0 || screenH <= 0) return;
+            float sx = canvasW / referenceResolution.x;
+            float sy = canvasH / referenceResolution.y;
+            float scale = Mathf.Min(sx, sy);
 
-            float screenAspect = screenW / screenH;
-            float refAspect = _scaler.referenceResolution.x / _scaler.referenceResolution.y;
-
-            // Если экран шире (короче) чем дизайн → ограничиваем по высоте (match=1).
-            // Если экран уже (длиннее) чем дизайн → ограничиваем по ширине (match=0).
-            // Так UI всегда влезает целиком, без обрезок — с полосами по «лишней» оси.
-            float match = screenAspect > refAspect ? 1f : 0f;
-            // Сглаживаем чтобы не мигало при ресайзе окна в редакторе.
-            if (!Mathf.Approximately(_scaler.matchWidthOrHeight, match))
-                _scaler.matchWidthOrHeight = match;
+            contentRoot.localScale = new Vector3(scale, scale, 1f);
         }
     }
 }
