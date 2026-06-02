@@ -53,7 +53,7 @@ namespace DrinkitGame.Tests.EditMode
         [Test]
         public void SerializeRestore_RoundTripsOneOrder()
         {
-            var s1 = new OrderService(_generator, _reputation, new System.Random(1));
+            var s1 = new OrderService(_generator, _reputation, _state, new System.Random(1));
             for (int i = 0; i < 30 && s1.GetSlot(0) == null; i++) s1.Tick(1f);
             Assert.IsNotNull(s1.GetSlot(0));
 
@@ -66,7 +66,7 @@ namespace DrinkitGame.Tests.EditMode
             Assert.AreEqual(1, _state.persistedOrders.Count);
 
             // Восстанавливаем в новый сервис
-            var s2 = new OrderService(_generator, _reputation, new System.Random(1));
+            var s2 = new OrderService(_generator, _reputation, _state, new System.Random(1));
             s2.RestoreFromState(_state, _content);
 
             var restored = s2.GetSlot(0);
@@ -85,7 +85,7 @@ namespace DrinkitGame.Tests.EditMode
                 remainingPatience = 100f
             });
 
-            var s = new OrderService(_generator, _reputation, new System.Random(1));
+            var s = new OrderService(_generator, _reputation, _state, new System.Random(1));
             s.RestoreFromState(_state, _content);
             Assert.IsNull(s.GetSlot(0));
         }
@@ -112,7 +112,7 @@ namespace DrinkitGame.Tests.EditMode
                 slotIndex = order.slotIndex
             });
 
-            var s = new OrderService(_generator, _reputation, new System.Random(1));
+            var s = new OrderService(_generator, _reputation, _state, new System.Random(1));
             s.RestoreFromState(_state, _content);
 
             var restored = s.GetSlot(1);
