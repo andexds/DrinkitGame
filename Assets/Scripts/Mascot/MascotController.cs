@@ -241,11 +241,15 @@ namespace DrinkitGame.Mascot
 
         public void Say(string text, MascotEmotion emotion = MascotEmotion.Idle)
         {
-            SetEmotion(emotion);
-            if (speechBubbleRoot == null || speechText == null) return;
-            // Если маскот скрыт (мы не на главном экране) — не показываем пузырь и не
-            // запускаем корутину: StartCoroutine на неактивном GameObject бросает ошибку.
+            // ВАЖНО: проверяем видимость ДО SetEmotion. Если маскот скрыт,
+            // меняем эмоцию — но HideBubbleAfter-корутина не стартует, и эмоция
+            // зависнет навечно. Просто пропускаем весь Say целиком.
+            // События (RecipeUnlocked, MachineUpgraded, WheelSpun) прилетают на
+            // других экранах — игрок их не увидит, и это ОК.
             if (!gameObject.activeInHierarchy) return;
+            if (speechBubbleRoot == null || speechText == null) return;
+
+            SetEmotion(emotion);
             speechText.text = text;
             speechBubbleRoot.SetActive(true);
             // Скрываем перекрывающий UI (Pill_Goal и т.п.) на время показа пузыря.
@@ -253,6 +257,15 @@ namespace DrinkitGame.Mascot
 
             if (_hideBubbleCoroutine != null) StopCoroutine(_hideBubbleCoroutine);
             _hideBubbleCoroutine = StartCoroutine(HideBubbleAfter(bubbleVisibleSeconds));
+        }
+
+        private void OnEnable()
+        {
+            // Страховка: каждый раз когда маскот становится видим — сбрасываем в Idle.
+            // Чинит случай когда эмоция была установлена прямо перед уходом с экрана
+            // (например, HideBubbleAfter не успела добежать до своего SetEmotion(Idle)
+            // потому что Unity убил корутину на неактивном объекте).
+            SetEmotion(MascotEmotion.Idle);
         }
 
         private void OnDisable()
