@@ -15,7 +15,8 @@ namespace DrinkitGame.Core
         public ProductDefinition syrup;            // null если нет сиропа
         public ProductDefinition topping;          // null если нет топпинга
         public bool isToGo;                        // тут (false) или с собой (true)
-        public float remainingPatience;            // сек, тикает вниз; 300 при спавне
+        public float remainingPatience;            // сек, тикает вниз
+        public float initialPatience = 120f;       // сек, выставляется на спавне (ComputePatience)
         public int slotIndex;                      // 0, 1 или 2
 
         public Order()

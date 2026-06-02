@@ -87,6 +87,7 @@ namespace DrinkitGame.Core
         public string toppingId;
         public bool isToGo;
         public float remainingPatience;
+        public float initialPatience;
         public int slotIndex;
     }
 }

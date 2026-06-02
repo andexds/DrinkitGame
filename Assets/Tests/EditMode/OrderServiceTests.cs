@@ -44,7 +44,7 @@ namespace DrinkitGame.Tests.EditMode
         [Test]
         public void Tick_SpawnsOrder_AfterDelay_InFreeSlot()
         {
-            var service = new OrderService(_generator, _reputation, new System.Random(1));
+            var service = new OrderService(_generator, _reputation, _state, new System.Random(1));
             Order spawned = null;
             service.OrderSpawned += o => spawned = o;
 
@@ -62,7 +62,7 @@ namespace DrinkitGame.Tests.EditMode
         [Test]
         public void Tick_FillsAllThreeSlots()
         {
-            var service = new OrderService(_generator, _reputation, new System.Random(1));
+            var service = new OrderService(_generator, _reputation, _state, new System.Random(1));
             int spawnCount = 0;
             service.OrderSpawned += _ => spawnCount++;
 
@@ -78,7 +78,7 @@ namespace DrinkitGame.Tests.EditMode
         [Test]
         public void Tick_StopsSpawning_WhenAllSlotsFull()
         {
-            var service = new OrderService(_generator, _reputation, new System.Random(1));
+            var service = new OrderService(_generator, _reputation, _state, new System.Random(1));
             for (int i = 0; i < 60; i++) service.Tick(1f);
 
             int extraSpawn = 0;
@@ -92,7 +92,7 @@ namespace DrinkitGame.Tests.EditMode
         [Test]
         public void Tick_AbandonsOrder_AfterPatienceExpires()
         {
-            var service = new OrderService(_generator, _reputation, new System.Random(1));
+            var service = new OrderService(_generator, _reputation, _state, new System.Random(1));
 
             // Захватываем ПЕРВЫЙ заспавненный заказ (внутри Tick(310f) после ухода клиента
             // может появиться новый заказ в тот же слот — нам нужен именно первый).
@@ -119,7 +119,7 @@ namespace DrinkitGame.Tests.EditMode
         [Test]
         public void TakeFromSlot_ReturnsOrder_AndFreesSlot()
         {
-            var service = new OrderService(_generator, _reputation, new System.Random(1));
+            var service = new OrderService(_generator, _reputation, _state, new System.Random(1));
             for (int i = 0; i < 20 && service.GetSlot(0) == null; i++) service.Tick(1f);
             Assert.IsNotNull(service.GetSlot(0));
 
@@ -138,7 +138,7 @@ namespace DrinkitGame.Tests.EditMode
             // Очищаем зерно
             _inventory.TryConsume("beans", 100);
 
-            var service = new OrderService(_generator, _reputation, new System.Random(1));
+            var service = new OrderService(_generator, _reputation, _state, new System.Random(1));
             int spawnCount = 0;
             service.OrderSpawned += _ => spawnCount++;
 

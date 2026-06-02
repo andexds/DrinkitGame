@@ -59,7 +59,7 @@ namespace DrinkitGame.Core
             Machine = new MachineService(State, content, Economy, Quests);
             GoalTracker = new GoalTrackerService(State, content, Economy, Quests, Machine);
             OrderGenerator = new OrderGenerator(State, content, Inventory);
-            Orders = new OrderService(OrderGenerator, Reputation);
+            Orders = new OrderService(OrderGenerator, Reputation, State);
             OrderResolution = new OrderResolutionService(State, Economy, Inventory, Quests, Machine);
             Wheel = new WheelService(State, content, Economy, Inventory);
             OrderResolution.OrderCompleted += _ => Wheel.OnOrderCompleted();

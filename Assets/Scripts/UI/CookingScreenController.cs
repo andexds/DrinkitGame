@@ -425,7 +425,7 @@ namespace DrinkitGame.UI
             var gsm = GameStateManager.Instance;
 
             float quality = _qualityCount > 0 ? _qualitySum / _qualityCount : 100f;
-            float elapsed = OrderService.Patience - _order.remainingPatience;
+            float elapsed = _order.initialPatience - _order.remainingPatience;
 
             var resolution = gsm.OrderResolution.Complete(_order, quality, elapsed);
 

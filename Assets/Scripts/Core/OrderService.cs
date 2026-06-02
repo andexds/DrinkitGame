@@ -3,13 +3,23 @@ using DrinkitGame.Data;
 
 namespace DrinkitGame.Core
 {
-    /// Управляет 3 слотами заказов: спавн через 5–15 сек когда свободен слот, тик терпения, уход клиентов.
+    /// Управляет 3 слотами заказов: спавн через 1–3 сек когда свободен слот, тик терпения, уход клиентов.
     public class OrderService
     {
         public const int SlotCount = 3;
         public const float SpawnDelayMin = 1f;
         public const float SpawnDelayMax = 3f;
-        public const float Patience = 300f;        // 5 минут
+
+        /// Стартовое терпение клиента в секундах (когда totalOrdersCompleted=0).
+        /// Тоже служит дефолтом для Order.initialPatience.
+        public const float Patience = 120f;
+
+        /// Минимум терпения (с прокачкой не падает ниже).
+        public const float MinPatience = 60f;
+
+        /// Сколько секунд снимается с базы за каждый успешно выданный заказ.
+        public const float PatienceReductionPerOrder = 1f;
+
         public const float ReputationLossOnAbandon = 0.1f;
 
         /// Сколько секунд НЕ спавнить новые заказы после успешной выдачи (между
@@ -20,6 +30,7 @@ namespace DrinkitGame.Core
         private readonly OrderGenerator _generator;
         private readonly ReputationService _reputation;
         private readonly Random _rng;
+        private readonly GameState _state;
 
         private float _spawnTimer;
         private bool _spawnTimerActive;
@@ -42,11 +53,22 @@ namespace DrinkitGame.Core
         public OrderService(
             OrderGenerator generator,
             ReputationService reputation,
+            GameState state,
             Random rng = null)
         {
             _generator = generator ?? throw new ArgumentNullException(nameof(generator));
             _reputation = reputation ?? throw new ArgumentNullException(nameof(reputation));
+            _state = state ?? throw new ArgumentNullException(nameof(state));
             _rng = rng ?? new System.Random();
+        }
+
+        /// Вычисляет терпение для нового заказа исходя из прокачки игрока.
+        /// Стартует с Patience, снижается линейно по totalOrdersCompleted, пол — MinPatience.
+        public static float ComputePatience(int totalOrdersCompleted)
+        {
+            float p = Patience - totalOrdersCompleted * PatienceReductionPerOrder;
+            if (p < MinPatience) p = MinPatience;
+            return p;
         }
 
         public Order GetSlot(int index)
@@ -127,7 +149,9 @@ namespace DrinkitGame.Core
             var newOrder = _generator.Generate(freeIndex);
             if (newOrder != null)
             {
-                newOrder.remainingPatience = Patience;
+                float patience = ComputePatience(_state.totalOrdersCompleted);
+                newOrder.initialPatience = patience;
+                newOrder.remainingPatience = patience;
                 _slots[freeIndex] = newOrder;
                 OrderSpawned?.Invoke(newOrder);
             }
@@ -197,6 +221,7 @@ namespace DrinkitGame.Core
                     toppingId = order.topping != null ? order.topping.id : null,
                     isToGo = order.isToGo,
                     remainingPatience = order.remainingPatience,
+                    initialPatience = order.initialPatience,
                     slotIndex = order.slotIndex
                 });
             }
@@ -226,6 +251,8 @@ namespace DrinkitGame.Core
                     topping = FindProduct(content, p.toppingId),
                     isToGo = p.isToGo,
                     remainingPatience = p.remainingPatience,
+                    // Бэкап для старых сейвов где initialPatience=0 → подставляем актуальную базу.
+                    initialPatience = p.initialPatience > 0 ? p.initialPatience : ComputePatience(state.totalOrdersCompleted),
                     slotIndex = p.slotIndex
                 };
                 if (order.recipe == null) continue; // рецепт удалили — пропустим
