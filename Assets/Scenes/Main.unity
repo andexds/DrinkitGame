@@ -4383,7 +4383,7 @@ MonoBehaviour:
     m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
     m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
     m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_DisabledColor: {r: 0, g: 0, b: 0, a: 0.5019608}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
   m_SpriteState:
@@ -17560,9 +17560,9 @@ MonoBehaviour:
   homeTab: {fileID: 1346350516}
   storeTab: {fileID: 1117147309}
   activeColor: {r: 0.353, g: 0.553, b: 0.863, a: 1}
-  inactiveColor: {r: 0.71, g: 0.78, b: 0.898, a: 1}
+  inactiveColor: {r: 0, g: 0, b: 0, a: 1}
   activeLabelColor: {r: 1, g: 1, b: 1, a: 1}
-  inactiveLabelColor: {r: 0.3, g: 0.34, b: 0.45, a: 1}
+  inactiveLabelColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!1 &1648362096
 GameObject:
   m_ObjectHideFlags: 0
@@ -19006,7 +19006,7 @@ MonoBehaviour:
   ingredientsContent: {fileID: 1021049572}
   machineContent: {fileID: 269649051}
   activeColor: {r: 0.353, g: 0.553, b: 0.863, a: 1}
-  inactiveColor: {r: 0.71, g: 0.78, b: 0.898, a: 1}
+  inactiveColor: {r: 0, g: 0, b: 0, a: 1}
 --- !u!1 &1828816404
 GameObject:
   m_ObjectHideFlags: 0

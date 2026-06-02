@@ -66,10 +66,26 @@ namespace DrinkitGame.UI
             }
 
             if (statusLabel != null) statusLabel.text = status;
+
+            // Если рецепт уже открыт — прячем цену и кнопку покупки целиком,
+            // оставляем только название + статус.
+            bool alreadyOwned = availability == PurchaseAvailability.AlreadyOwned;
+
             if (priceLabel != null)
-                priceLabel.text = recipe.recipePurchasePrice > 0 ? $"{recipe.recipePurchasePrice} ₽" : "";
-            if (buyButtonLabel != null) buyButtonLabel.text = buyText;
-            if (buyButton != null) buyButton.interactable = buyActive;
+            {
+                priceLabel.gameObject.SetActive(!alreadyOwned);
+                if (!alreadyOwned)
+                    priceLabel.text = recipe.recipePurchasePrice > 0 ? $"{recipe.recipePurchasePrice} ₽" : "";
+            }
+
+            if (buyButton != null)
+            {
+                buyButton.gameObject.SetActive(!alreadyOwned);
+                buyButton.interactable = buyActive;
+            }
+
+            if (buyButtonLabel != null && !alreadyOwned)
+                buyButtonLabel.text = buyText;
         }
     }
 }
