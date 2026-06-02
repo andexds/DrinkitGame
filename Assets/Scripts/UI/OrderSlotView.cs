@@ -22,12 +22,6 @@ namespace DrinkitGame.UI
         public TMP_Text timerLabel;
         public Button clickButton;
 
-        [Header("Modifiers truncation")]
-        [Tooltip("Максимум строк модификаторов на карточке. " +
-                 "Дальше — троеточие. Полное описание игрок увидит на экране готовки.")]
-        [Range(1, 6)]
-        public int maxModifierLines = 2;
-
         /// Событие — игрок тапнул по слоту. Передаётся индекс.
         public event System.Action<int> Tapped;
 
@@ -53,13 +47,7 @@ namespace DrinkitGame.UI
             if (recipeNameLabel != null)
                 recipeNameLabel.text = order.recipe.displayName;
             if (modifiersLabel != null)
-            {
                 modifiersLabel.text = BuildModifiersString(order);
-                // Карточка маленькая — ограничиваем число строк, лишнее режется троеточием.
-                modifiersLabel.overflowMode = TextOverflowModes.Ellipsis;
-                modifiersLabel.enableWordWrapping = true;
-                modifiersLabel.maxVisibleLines = Mathf.Max(1, maxModifierLines);
-            }
             UpdateTimer(order.remainingPatience);
         }
 
