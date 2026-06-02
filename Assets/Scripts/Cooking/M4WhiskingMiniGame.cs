@@ -1,5 +1,6 @@
 using System;
 using DrinkitGame.Data;
+using DrinkitGame.Telegram;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -59,6 +60,8 @@ namespace DrinkitGame.Cooking
         {
             if (!_running) return;
             _taps++;
+            // Лёгкий тычок на каждый тап — даёт «дрыжь» под пальцем при быстром тапанье.
+            TelegramHaptics.Light();
             UpdateLabels();
         }
 

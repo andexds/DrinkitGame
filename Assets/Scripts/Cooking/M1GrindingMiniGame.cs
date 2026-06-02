@@ -1,5 +1,6 @@
 using System;
 using DrinkitGame.Data;
+using DrinkitGame.Telegram;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -58,6 +59,10 @@ namespace DrinkitGame.Cooking
             if (!_running) return;
             _running = false;
             float quality = MiniGameQuality.FromZoneHit(_position, zoneCenter, _zoneWidth);
+            // Хаптик по результату: попал зелено → success; жёлто → light; красно → warning
+            if (quality >= 80f) TelegramHaptics.Success();
+            else if (quality >= 50f) TelegramHaptics.Light();
+            else TelegramHaptics.Warning();
             Completed?.Invoke(quality);
         }
 

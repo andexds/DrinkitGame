@@ -1,5 +1,6 @@
 using System;
 using DrinkitGame.Data;
+using DrinkitGame.Telegram;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -34,6 +35,10 @@ namespace DrinkitGame.Cooking
         private bool _running;
         private bool _holding;
         private Vector2 _fullSize; // запомненный sizeDelta полоски при старте сцены
+
+        // Интервал между «толчками» хаптика во время удержания.
+        private const float HapticInterval = 0.15f;
+        private float _hapticTimer;
 
         private void Awake()
         {
@@ -71,6 +76,15 @@ namespace DrinkitGame.Cooking
             {
                 _fill = Mathf.Min(maxFill, _fill + fillSpeed * Time.deltaTime);
                 UpdateFill();
+
+                // Хаптик с нарастающей интенсивностью пока держим кнопку.
+                _hapticTimer -= Time.deltaTime;
+                if (_hapticTimer <= 0f)
+                {
+                    _hapticTimer = HapticInterval;
+                    TelegramHaptics.ImpactByProgress(_fill / maxFill);
+                }
+
                 if (_fill >= maxFill) OnRelease(); // авто-стоп при переполнении
             }
         }
@@ -81,6 +95,10 @@ namespace DrinkitGame.Cooking
             _holding = false;
             _running = false;
             float quality = MiniGameQuality.FromZoneHit(_fill, zoneCenter, _zoneWidth);
+            // Финальный «итоговый» хаптик
+            if (quality >= 80f) TelegramHaptics.Success();
+            else if (quality >= 50f) TelegramHaptics.Light();
+            else TelegramHaptics.Warning();
             Completed?.Invoke(quality);
         }
 

@@ -1,4 +1,5 @@
 using System.Collections;
+using DrinkitGame.Telegram;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -36,6 +37,10 @@ namespace DrinkitGame.UI
         [Tooltip("Опционально: масштаб частицы в начале и в конце (1=без изменений).")]
         public Vector2 scaleStartEnd = new Vector2(1f, 0.5f);
 
+        [Header("Haptic")]
+        [Tooltip("Эмитить telegram-haptic при каждом Burst().")]
+        public bool emitHaptic = true;
+
         /// Запустить взрыв из текущей позиции (или из позиции template — если задан).
         public void Burst()
         {
@@ -54,15 +59,24 @@ namespace DrinkitGame.UI
 
                 var go = Instantiate(template.gameObject, parent);
                 go.SetActive(true);
+
+                // Главное: ставим железную страховку на удаление через duration+запас.
+                // Это срабатывает независимо от состояния корутины (Unity может убить
+                // её при деактивации родителя). До этого фикса частицы иногда висели
+                // вечно на сцене после ухода с экрана готовки.
+                Destroy(go, duration + 0.1f);
+
                 StartCoroutine(AnimateParticle(go, origin, dir));
             }
+
+            if (emitHaptic) TelegramHaptics.Light();
         }
 
         private IEnumerator AnimateParticle(GameObject p, Vector2 origin, Vector2 dir)
         {
             var rt = p.GetComponent<RectTransform>();
             var img = p.GetComponent<Image>();
-            if (rt == null || img == null) { Destroy(p); yield break; }
+            if (rt == null || img == null) { if (p != null) Destroy(p); yield break; }
 
             rt.anchoredPosition = origin;
             rt.localScale = Vector3.one * scaleStartEnd.x;
@@ -71,7 +85,7 @@ namespace DrinkitGame.UI
             img.color = baseColor;
 
             float t = 0f;
-            while (t < duration)
+            while (t < duration && p != null)
             {
                 t += Time.deltaTime;
                 float k = Mathf.Clamp01(t / duration);
@@ -84,7 +98,9 @@ namespace DrinkitGame.UI
                 yield return null;
             }
 
-            Destroy(p);
+            // Дублирующий Destroy — на случай если страховочный таймер ещё не сработал.
+            // Если корутина дошла до конца штатно, p ещё живой → удаляем.
+            if (p != null) Destroy(p);
         }
     }
 }
