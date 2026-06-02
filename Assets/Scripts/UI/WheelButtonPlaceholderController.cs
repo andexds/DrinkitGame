@@ -33,8 +33,8 @@ namespace DrinkitGame.UI
         {
             if (tokenBadge != null)
             {
-                tokenBadge.text = count > 0 ? count.ToString() : "";
-                tokenBadge.gameObject.SetActive(count > 0);
+                tokenBadge.text = count.ToString();
+                tokenBadge.gameObject.SetActive(true);
             }
         }
     }
