@@ -13034,7 +13034,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tierLabel: {fileID: 840079762}
   machineImage: {fileID: 1059856784}
-  openStoreButton: {fileID: 0}
+  openStoreButton: {fileID: 1486359957}
 --- !u!114 &1179744551
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -17786,6 +17786,17 @@ MonoBehaviour:
   spinButtonLabel: {fileID: 1380450552}
   spinDuration: 2
   spinFullRotations: 4
+  sectorsInVisualOrder:
+  - {fileID: 11400000, guid: 90389d042aa7640deb97c01033ded16d, type: 2}
+  - {fileID: 11400000, guid: 065e103878d6e4f5a985ecb6e60a57df, type: 2}
+  - {fileID: 11400000, guid: d580e44884cb1456bbee6864ce25f835, type: 2}
+  - {fileID: 11400000, guid: 9e6ee50bb8048490d945804bb1a2edf6, type: 2}
+  - {fileID: 11400000, guid: 75a908d5618524a41891884b0577e868, type: 2}
+  - {fileID: 11400000, guid: 4553db0536b824af49e572284b695edb, type: 2}
+  - {fileID: 11400000, guid: d1db9fd5d449743bd8b6ca2f13be018f, type: 2}
+  - {fileID: 11400000, guid: 73b53e964d5df487a97fc51a2bd7265f, type: 2}
+  - {fileID: 11400000, guid: 9355de397b6924989a829118e569d321, type: 2}
+  sectorJitter: 0.3
 --- !u!1 &1647547544
 GameObject:
   m_ObjectHideFlags: 0

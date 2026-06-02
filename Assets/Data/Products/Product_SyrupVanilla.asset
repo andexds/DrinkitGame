@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: syrup_vanilla
   displayName: "\u0421\u0438\u0440\u043E\u043F \u0432\u0430\u043D\u0438\u043B\u044C"
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 8f832a4d0399546e1b3ee8e7d8f80ba3, type: 3}
   category: 4
   isPremiumMilk: 0
   purchasePrice: 30

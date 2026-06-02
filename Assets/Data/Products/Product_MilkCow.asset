@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: milk_cow
   displayName: "\u041C\u043E\u043B\u043E\u043A\u043E \u043A\u043E\u0440\u043E\u0432\u044C\u0435"
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 59b9d54dc8ba14a66a60c576ab686016, type: 3}
   category: 1
   isPremiumMilk: 0
   purchasePrice: 25

@@ -117,13 +117,17 @@ namespace DrinkitGame.UI
                 if (section.countLabel != null) section.countLabel.text = total.ToString();
 
                 bool low = total <= section.lowThreshold;
-                Color tint = low ? section.lowColor : section.normalColor;
+                Color lowTint = low ? section.lowColor : section.normalColor;
 
-                if (section.countLabel != null) section.countLabel.color = tint;
-                if (section.titleLabel != null) section.titleLabel.color = tint;
-                if (section.icon != null) section.icon.color = tint;
+                // Текст НЕ красим — всегда в normalColor (белый). Запрос игрока:
+                // «закончились ингредиенты — не красим в красный, оставляем белым».
+                if (section.countLabel != null) section.countLabel.color = section.normalColor;
+                if (section.titleLabel != null) section.titleLabel.color = section.normalColor;
+
+                // Иконка/фон по-прежнему меняются — даёт визуальный hint без агрессивности.
+                if (section.icon != null) section.icon.color = lowTint;
                 if (section.background != null && section.tintBackgroundOnLow)
-                    section.background.color = tint;
+                    section.background.color = lowTint;
             }
         }
 

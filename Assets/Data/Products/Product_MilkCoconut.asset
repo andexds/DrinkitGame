@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: milk_coconut
   displayName: "\u041C\u043E\u043B\u043E\u043A\u043E \u043A\u043E\u043A\u043E\u0441\u043E\u0432\u043E\u0435"
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 0288569e675e54b14a67231548edaf69, type: 3}
   category: 1
   isPremiumMilk: 1
   purchasePrice: 70

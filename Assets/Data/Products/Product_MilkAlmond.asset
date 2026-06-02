@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: milk_almond
   displayName: "\u041C\u043E\u043B\u043E\u043A\u043E \u043C\u0438\u043D\u0434\u0430\u043B\u044C\u043D\u043E\u0435"
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 542e2ed8310884e0da1036c4621517ea, type: 3}
   category: 1
   isPremiumMilk: 1
   purchasePrice: 70

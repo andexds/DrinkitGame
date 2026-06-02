@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: cup_takeaway
   displayName: "\u0421\u0442\u0430\u043A\u0430\u043D \u0441 \u0441\u043E\u0431\u043E\u0439"
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: d465efa70004341d19e14cdae32b9d31, type: 3}
   category: 6
   isPremiumMilk: 0
   purchasePrice: 15

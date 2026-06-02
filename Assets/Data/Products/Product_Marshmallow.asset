@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: topping_marshmallow
   displayName: "\u0417\u0435\u0444\u0438\u0440\u043A\u0438"
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 5e13b9f969ef04e879ae38d75be6f42d, type: 3}
   category: 5
   isPremiumMilk: 0
   purchasePrice: 20

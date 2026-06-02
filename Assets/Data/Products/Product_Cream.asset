@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: cream
   displayName: "\u0421\u043B\u0438\u0432\u043A\u0438"
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 11c22bb44a20c4c49afbcc16a11aefcd, type: 3}
   category: 2
   isPremiumMilk: 0
   purchasePrice: 80

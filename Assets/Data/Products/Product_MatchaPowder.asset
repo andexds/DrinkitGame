@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: matcha_powder
   displayName: "\u041C\u0430\u0442\u0447\u0430-\u043F\u043E\u0440\u043E\u0448\u043E\u043A"
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: a432a7c45884c4f32816709d002a0ba9, type: 3}
   category: 3
   isPremiumMilk: 0
   purchasePrice: 90
