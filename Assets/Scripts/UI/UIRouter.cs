@@ -1,13 +1,30 @@
+using System;
 using DrinkitGame.Core;
 using UnityEngine;
 
 namespace DrinkitGame.UI
 {
+    /// Текущий «верхний» экран — для подсветки активного таба в TabBar.
+    public enum Screen
+    {
+        Main,
+        Cooking,
+        Store,
+        Wheel,
+    }
+
     /// Простой роутер между UI-панелями. Висит на Canvas или GameRoot.
     /// Singleton — UI компоненты находят его через Instance.
     public class UIRouter : MonoBehaviour
     {
         public static UIRouter Instance { get; private set; }
+
+        /// Стреляет после каждой смены экрана. TabBarPlaceholderController подписывается
+        /// и обновляет подсветку. Параметр — какой экран теперь активный.
+        public event Action<Screen> ScreenChanged;
+
+        /// Какой экран сейчас активен. Доступно сразу после ShowMain/OpenStore/etc.
+        public Screen CurrentScreen { get; private set; } = Screen.Main;
 
         [Header("Panels (root GameObjects)")]
         public GameObject mainScreenPanel;
@@ -49,6 +66,8 @@ namespace DrinkitGame.UI
             SetActive(orderResultPopup, false);
             SetActive(storeScreenPanel, false);
             SetActive(wheelScreenPanel, false);
+            CurrentScreen = Screen.Main;
+            ScreenChanged?.Invoke(CurrentScreen);
         }
 
         public void OpenCooking(Order order)
@@ -62,6 +81,8 @@ namespace DrinkitGame.UI
             SetActive(wheelScreenPanel, false);
             SetActive(cookingScreenPanel, true);
             if (cookingController != null) cookingController.Bind(order);
+            CurrentScreen = Screen.Cooking;
+            ScreenChanged?.Invoke(CurrentScreen);
         }
 
         public void ShowOrderResult(OrderResolution resolution)
@@ -86,6 +107,8 @@ namespace DrinkitGame.UI
             SetActive(storeScreenPanel, true);
             SetActive(orderResultPopup, false);
             SetActive(wheelScreenPanel, false);
+            CurrentScreen = Screen.Store;
+            ScreenChanged?.Invoke(CurrentScreen);
         }
 
         /// Открыть магазин сразу на нужной вкладке (Recipes / Ingredients / Machine).
@@ -105,6 +128,8 @@ namespace DrinkitGame.UI
             SetActive(storeScreenPanel, false);
             SetActive(wheelScreenPanel, true);
             SetActive(orderResultPopup, false);
+            CurrentScreen = Screen.Wheel;
+            ScreenChanged?.Invoke(CurrentScreen);
         }
     }
 }
