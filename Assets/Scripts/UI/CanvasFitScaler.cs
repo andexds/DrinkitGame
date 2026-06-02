@@ -37,8 +37,10 @@ namespace DrinkitGame.UI
             _scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             _scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
 
-            float screenW = Screen.width;
-            float screenH = Screen.height;
+            // Полное имя UnityEngine.Screen чтобы не конфликтовать с enum Screen
+            // из DrinkitGame.UI (объявлен в UIRouter для навигации между экранами).
+            float screenW = UnityEngine.Screen.width;
+            float screenH = UnityEngine.Screen.height;
             if (screenW <= 0 || screenH <= 0) return;
 
             float screenAspect = screenW / screenH;
