@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: cappuccino
   displayName: "\u041A\u0430\u043F\u0443\u0447\u0438\u043D\u043E"
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 51dd54368af6842b1b2aa0b17a41fc20, type: 3}
   family: 2
   basePrice: 250
   recipePurchasePrice: 500

@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: americano
   displayName: "\u0410\u043C\u0435\u0440\u0438\u043A\u0430\u043D\u043E"
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 647ab85dd2cf34228babb37485b6ea7b, type: 3}
   family: 1
   basePrice: 160
   recipePurchasePrice: 100

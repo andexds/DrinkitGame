@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: espresso
   displayName: "\u042D\u0441\u043F\u0440\u0435\u0441\u0441\u043E"
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 5be9499639f64404592b5290da0ce43b, type: 3}
   family: 0
   basePrice: 130
   recipePurchasePrice: 0

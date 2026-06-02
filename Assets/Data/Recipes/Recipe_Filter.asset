@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: filter
   displayName: "\u0424\u0438\u043B\u044C\u0442\u0440"
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 01870dffd3195485abd80359b591eb9b, type: 3}
   family: 5
   basePrice: 220
   recipePurchasePrice: 2000

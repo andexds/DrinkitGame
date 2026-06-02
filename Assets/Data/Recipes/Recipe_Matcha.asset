@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: matcha
   displayName: "\u041C\u0430\u0442\u0447\u0430"
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 9b9561cd8b0cd4cdbba98aae7854db0e, type: 3}
   family: 6
   basePrice: 330
   recipePurchasePrice: 1500

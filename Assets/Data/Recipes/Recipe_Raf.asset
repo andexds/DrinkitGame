@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: raf
   displayName: "\u0420\u0430\u0444"
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 6d77e019f7cbd4f4ba157ec33d60b2cb, type: 3}
   family: 4
   basePrice: 320
   recipePurchasePrice: 1000

@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: latte
   displayName: "\u041B\u0430\u0442\u0442\u0435"
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 90e9c248118a5415ba1fbc5d2aedcec3, type: 3}
   family: 3
   basePrice: 280
   recipePurchasePrice: 600
