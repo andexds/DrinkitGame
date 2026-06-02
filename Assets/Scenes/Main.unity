@@ -10899,6 +10899,7 @@ MonoBehaviour:
   duration: 0.7
   angleJitter: 0.3
   scaleStartEnd: {x: 1, y: 0.5}
+  emitHaptic: 1
 --- !u!224 &1023815143
 RectTransform:
   m_ObjectHideFlags: 0
@@ -11095,6 +11096,7 @@ GameObject:
   - component: {fileID: 1036462606}
   - component: {fileID: 1036462605}
   - component: {fileID: 1036462609}
+  - component: {fileID: 1036462610}
   m_Layer: 5
   m_Name: Canvas
   m_TagString: Untagged
@@ -11213,6 +11215,20 @@ MonoBehaviour:
   wheelScreenPanel: {fileID: 1632847760}
   cookingController: {fileID: 1573536274}
   resultPopupController: {fileID: 799846263}
+--- !u!114 &1036462610
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1036462604}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1702ccc41933148908caef17568fdc47, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  defaultKind: 2
+  rootScope: {fileID: 0}
 --- !u!1 &1036773180
 GameObject:
   m_ObjectHideFlags: 0
