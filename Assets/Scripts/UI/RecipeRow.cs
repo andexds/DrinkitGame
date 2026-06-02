@@ -20,17 +20,11 @@ namespace DrinkitGame.UI
         public System.Action<RecipeDefinition> OnBuyClicked;
 
         private RecipeDefinition _recipe;
-        private CanvasGroup _canvasGroup;
 
         private void Awake()
         {
             if (buyButton != null)
                 buyButton.onClick.AddListener(() => OnBuyClicked?.Invoke(_recipe));
-
-            // CanvasGroup нужен чтобы делать купленные строки полупрозрачными.
-            // Если в префабе нет — добавим в рантайме.
-            _canvasGroup = GetComponent<CanvasGroup>();
-            if (_canvasGroup == null) _canvasGroup = gameObject.AddComponent<CanvasGroup>();
         }
 
         public void Bind(RecipeDefinition recipe, RecipeService recipes, EconomyService economy)
@@ -92,9 +86,6 @@ namespace DrinkitGame.UI
 
             if (buyButtonLabel != null && !alreadyOwned)
                 buyButtonLabel.text = buyText;
-
-            // Купленные строки — 50% прозрачные.
-            if (_canvasGroup != null) _canvasGroup.alpha = alreadyOwned ? 0.5f : 1f;
         }
     }
 }
