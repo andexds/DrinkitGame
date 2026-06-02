@@ -15,17 +15,17 @@ namespace DrinkitGame.UI
 
         [Header("Active highlight (optional)")]
         [Tooltip("Цвет Image-фона активного таба (того, экран которого открыт).")]
-        public Color activeColor = new(0.353f, 0.553f, 0.863f); // 5A8DDC
+        public Color activeColor = new(0.353f, 0.553f, 0.863f); // 5A8DDC синий
 
         [Tooltip("Цвет Image-фона неактивного таба.")]
-        public Color inactiveColor = new(0.710f, 0.780f, 0.898f); // B5C7E5
+        public Color inactiveColor = Color.black;
 
         [Header("Active label tint (optional)")]
         [Tooltip("Цвет TMP-лейбла активного таба.")]
         public Color activeLabelColor = Color.white;
 
         [Tooltip("Цвет TMP-лейбла неактивного таба.")]
-        public Color inactiveLabelColor = new(0.30f, 0.34f, 0.45f);
+        public Color inactiveLabelColor = Color.white;
 
         private void Start()
         {
