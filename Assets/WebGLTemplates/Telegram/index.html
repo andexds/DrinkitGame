@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ru-RU">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>{{{ PRODUCT_NAME }}}</title>
+  <link rel="shortcut icon" href="TemplateData/favicon.ico">
+  <link rel="stylesheet" href="TemplateData/style.css">
+
+  <!-- Telegram WebApp SDK — даёт доступ к HapticFeedback, themeParams и т.п. -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <style>
+    html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #0f1a2e; }
+    #unity-container { width: 100vw; height: 100vh; position: relative; }
+    #unity-canvas {
+      width: 100% !important;
+      height: 100% !important;
+      background: #0f1a2e;
+      display: block;
+    }
+    #unity-loading-bar {
+      position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+      display: none; color: white; font-family: system-ui, sans-serif;
+    }
+    #unity-progress-bar-empty { width: 200px; height: 6px; margin-top: 12px; background: rgba(255,255,255,0.15); border-radius: 3px; overflow: hidden; }
+    #unity-progress-bar-full { width: 0%; height: 100%; background: #5A8DDC; transition: width 0.2s; }
+    #unity-warning { position: absolute; left: 50%; top: 5%; transform: translate(-50%); color: white; font-family: system-ui, sans-serif; }
+  </style>
+</head>
+<body>
+  <div id="unity-container">
+    <canvas id="unity-canvas" tabindex="-1"></canvas>
+    <div id="unity-loading-bar">
+      Загружаем Drinkit…
+      <div id="unity-progress-bar-empty"><div id="unity-progress-bar-full"></div></div>
+    </div>
+    <div id="unity-warning"></div>
+  </div>
+
+  <script>
+    // Подсказка Telegram: распахни на весь экран сразу.
+    try {
+      if (window.Telegram && window.Telegram.WebApp) {
+        window.Telegram.WebApp.ready();
+        window.Telegram.WebApp.expand();
+      }
+    } catch (e) { /* вне Telegram — не страшно */ }
+
+    var container = document.querySelector("#unity-container");
+    var canvas = document.querySelector("#unity-canvas");
+    var loadingBar = document.querySelector("#unity-loading-bar");
+    var progressBarFull = document.querySelector("#unity-progress-bar-full");
+    var warningBanner = document.querySelector("#unity-warning");
+
+    function unityShowBanner(msg, type) {
+      var div = document.createElement('div');
+      div.innerHTML = msg;
+      warningBanner.appendChild(div);
+      if (type == 'error') div.style.background = 'red';
+      else if (type == 'warning') div.style.background = 'yellow';
+      setTimeout(function() { warningBanner.removeChild(div); }, 5000);
+    }
+
+    var buildUrl = "Build";
+    var loaderUrl = buildUrl + "/{{{ LOADER_FILENAME }}}";
+    var config = {
+      arguments: [],
+      dataUrl: buildUrl + "/{{{ DATA_FILENAME }}}",
+      frameworkUrl: buildUrl + "/{{{ FRAMEWORK_FILENAME }}}",
+      codeUrl: buildUrl + "/{{{ CODE_FILENAME }}}",
+      streamingAssetsUrl: "StreamingAssets",
+      companyName: "{{{ COMPANY_NAME }}}",
+      productName: "{{{ PRODUCT_NAME }}}",
+      productVersion: "{{{ PRODUCT_VERSION }}}",
+      showBanner: unityShowBanner,
+    };
+
+    loadingBar.style.display = "block";
+
+    var script = document.createElement("script");
+    script.src = loaderUrl;
+    script.onload = function() {
+      createUnityInstance(canvas, config, function(progress) {
+        progressBarFull.style.width = (100 * progress) + "%";
+      }).then(function(unityInstance) {
+        loadingBar.style.display = "none";
+      }).catch(function(err) {
+        alert(err);
+      });
+    };
+    document.body.appendChild(script);
+  </script>
+</body>
+</html>

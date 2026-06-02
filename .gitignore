@@ -49,5 +49,7 @@ crashlytics-build.properties
 # Crashlogs
 sysinfo.txt
 
-# WebGL build output (we'll commit only when we want to share builds)
+# WebGL build output — папка web/ зарезервирована под коммит и деплой в Vercel.
+# Остальные WebGL-* папки игнорим как раньше.
 [Ww]eb[Gg][Ll][_-]*/
+!/web/
