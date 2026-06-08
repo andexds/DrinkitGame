@@ -16,7 +16,7 @@ namespace DrinkitGame.Cooking
             // 1. Всегда первый шаг — взять стакан
             steps.Add(new CookingStep(
                 CookingStepType.TakeCup,
-                order.isToGo ? "Возьми стакан 'с собой'" : "Возьми стакан 'тут'"));
+                order.isToGo ? "Возьми стакан 'с собой'" : "Возьми стакан 'в кафе'"));
 
             // 2. Дальше — семейство-специфичные шаги
             switch (order.recipe.family)

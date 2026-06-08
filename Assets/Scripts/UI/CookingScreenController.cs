@@ -462,7 +462,7 @@ namespace DrinkitGame.UI
             if (order.cream != null) sb.Append(" · сливки");
             if (order.syrup != null) sb.Append(" · ").Append(order.syrup.displayName.ToLower());
             if (order.topping != null) sb.Append(" · ").Append(order.topping.displayName.ToLower());
-            sb.Append(" · ").Append(order.isToGo ? "с собой" : "тут");
+            sb.Append(" · ").Append(order.isToGo ? "с собой" : "в кафе");
             return sb.ToString();
         }
 
