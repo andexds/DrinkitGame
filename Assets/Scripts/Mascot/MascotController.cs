@@ -63,6 +63,28 @@ namespace DrinkitGame.Mascot
         public Color disappointedColor = new(0.85f, 0.27f, 0.27f); // красноватый
         public Color pointingColor = new(0.18f, 0.55f, 0.85f); // ярко-синий
         public Color sleepingColor = new(0.51f, 0.51f, 0.51f); // серый
+        public Color angryColor = new(0.95f, 0.20f, 0.20f);    // красный
+
+        [Header("Tap reactions (тапнул по Дринчику)")]
+        [Tooltip("Случайная фраза, которую Дринчик скажет в Angry-эмоции при тапе.")]
+        public List<string> angryPhrases = new()
+        {
+            "И зачем ты это сделал?",
+            "Хватит в меня тыкать",
+            "Сварил бы лучше кофе, люди ждут",
+            "Дада, я понял, что тебе делать нечего",
+        };
+
+        [Tooltip("Минимальная пауза между тапами по маскоту (сек), чтобы не спамить.")]
+        [Range(0.1f, 3f)]
+        public float tapCooldown = 0.8f;
+
+        private float _lastTapTime = -999f;
+
+        // Запоминаем последнюю эмоцию которую попросили показать пока маскот был скрыт —
+        // отыграем её при возврате на главный экран.
+        private MascotEmotion? _queuedEmotion;
+        private string _queuedText;
 
         private GameStateManager _gsm;
         private Coroutine _hideBubbleCoroutine;
@@ -76,6 +98,16 @@ namespace DrinkitGame.Mascot
             HideBubble();
             SetEmotion(MascotEmotion.Idle);
 
+            // Делаем bodyImage кликабельной — для tap-to-anger реакции.
+            // Добавляем Button если ещё нет (без визуальных transition'ов).
+            if (bodyImage != null)
+            {
+                var btn = bodyImage.GetComponent<Button>();
+                if (btn == null) btn = bodyImage.gameObject.AddComponent<Button>();
+                btn.transition = Selectable.Transition.None;
+                btn.onClick.AddListener(OnMascotTapped);
+            }
+
             if (_gsm == null) return;
 
             // Подписки на события — Дринчик реагирует
@@ -85,6 +117,17 @@ namespace DrinkitGame.Mascot
             _gsm.Machine.Upgraded += OnMachineUpgraded;
             _gsm.Wheel.Spun += OnWheelSpun;
             _gsm.Orders.CannotSpawnNoIngredients += OnCannotSpawn;
+        }
+
+        private void OnMascotTapped()
+        {
+            // Дебаунс — не чаще раза в N сек.
+            if (Time.time - _lastTapTime < tapCooldown) return;
+            _lastTapTime = Time.time;
+
+            if (angryPhrases == null || angryPhrases.Count == 0) return;
+            var phrase = angryPhrases[Random.Range(0, angryPhrases.Count)];
+            Say(phrase, MascotEmotion.Angry);
         }
 
         private void OnDestroy()
@@ -241,12 +284,15 @@ namespace DrinkitGame.Mascot
 
         public void Say(string text, MascotEmotion emotion = MascotEmotion.Idle)
         {
-            // ВАЖНО: проверяем видимость ДО SetEmotion. Если маскот скрыт,
-            // меняем эмоцию — но HideBubbleAfter-корутина не стартует, и эмоция
-            // зависнет навечно. Просто пропускаем весь Say целиком.
-            // События (RecipeUnlocked, MachineUpgraded, WheelSpun) прилетают на
-            // других экранах — игрок их не увидит, и это ОК.
-            if (!gameObject.activeInHierarchy) return;
+            // Если маскот скрыт (мы на другом экране) — запоминаем последний вызов,
+            // отыграем его на OnEnable когда вернёмся. Так Happy/Excited/Sad с других
+            // экранов всё-таки доходят до игрока.
+            if (!gameObject.activeInHierarchy)
+            {
+                _queuedEmotion = emotion;
+                _queuedText = text;
+                return;
+            }
             if (speechBubbleRoot == null || speechText == null) return;
 
             SetEmotion(emotion);
@@ -261,11 +307,27 @@ namespace DrinkitGame.Mascot
 
         private void OnEnable()
         {
-            // Страховка: каждый раз когда маскот становится видим — сбрасываем в Idle.
-            // Чинит случай когда эмоция была установлена прямо перед уходом с экрана
-            // (например, HideBubbleAfter не успела добежать до своего SetEmotion(Idle)
-            // потому что Unity убил корутину на неактивном объекте).
-            SetEmotion(MascotEmotion.Idle);
+            // Если пока маскот был скрыт прилетело событие с эмоцией (Happy/Excited/Sad
+            // от других экранов) — отыграем его сейчас. Иначе сбрасываем в Idle.
+            if (_queuedEmotion.HasValue)
+            {
+                var e = _queuedEmotion.Value;
+                var t = _queuedText;
+                _queuedEmotion = null;
+                _queuedText = null;
+                // Отложим на следующий кадр, чтобы дать сцене дорисоваться.
+                StartCoroutine(SayQueuedNextFrame(t, e));
+            }
+            else
+            {
+                SetEmotion(MascotEmotion.Idle);
+            }
+        }
+
+        private IEnumerator SayQueuedNextFrame(string text, MascotEmotion emotion)
+        {
+            yield return null; // ждём 1 кадр чтобы CookingScreenPanel.SetActive(false) долетел
+            if (gameObject.activeInHierarchy) Say(text, emotion);
         }
 
         private void OnDisable()
@@ -341,6 +403,7 @@ namespace DrinkitGame.Mascot
                 MascotEmotion.Disappointed => disappointedColor,
                 MascotEmotion.Pointing => pointingColor,
                 MascotEmotion.Sleeping => sleepingColor,
+                MascotEmotion.Angry => angryColor,
                 _ => idleColor
             };
         }
@@ -359,6 +422,7 @@ namespace DrinkitGame.Mascot
                 MascotEmotion.Disappointed => ":|",
                 MascotEmotion.Pointing => "->",
                 MascotEmotion.Sleeping => "zzz",
+                MascotEmotion.Angry => ">:(",
                 _ => "Дринчик"
             };
         }

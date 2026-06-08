@@ -9,6 +9,7 @@ namespace DrinkitGame.Mascot
         Sad,
         Disappointed,
         Pointing,
-        Sleeping
+        Sleeping,
+        Angry
     }
 }
