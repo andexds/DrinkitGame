@@ -99,13 +99,22 @@ namespace DrinkitGame.Mascot
             SetEmotion(MascotEmotion.Idle);
 
             // Делаем bodyImage кликабельной — для tap-to-anger реакции.
-            // Добавляем Button если ещё нет (без визуальных transition'ов).
+            // Явно включаем raycastTarget + Button с явным TargetGraphic.
             if (bodyImage != null)
             {
+                bodyImage.raycastTarget = true;
                 var btn = bodyImage.GetComponent<Button>();
                 if (btn == null) btn = bodyImage.gameObject.AddComponent<Button>();
                 btn.transition = Selectable.Transition.None;
+                btn.targetGraphic = bodyImage;
+                btn.interactable = true;
+                btn.onClick.RemoveListener(OnMascotTapped); // на всякий случай дедуп
                 btn.onClick.AddListener(OnMascotTapped);
+                Debug.Log($"[Mascot] Tap-button attached to {bodyImage.gameObject.name}");
+            }
+            else
+            {
+                Debug.LogWarning("[Mascot] bodyImage не назначен — тапы по маскоту работать не будут.");
             }
 
             if (_gsm == null) return;
@@ -121,11 +130,16 @@ namespace DrinkitGame.Mascot
 
         private void OnMascotTapped()
         {
+            Debug.Log("[Mascot] Tap detected");
             // Дебаунс — не чаще раза в N сек.
             if (Time.time - _lastTapTime < tapCooldown) return;
             _lastTapTime = Time.time;
 
-            if (angryPhrases == null || angryPhrases.Count == 0) return;
+            if (angryPhrases == null || angryPhrases.Count == 0)
+            {
+                Debug.LogWarning("[Mascot] angryPhrases пустой — нечего сказать.");
+                return;
+            }
             var phrase = angryPhrases[Random.Range(0, angryPhrases.Count)];
             Say(phrase, MascotEmotion.Angry);
         }
