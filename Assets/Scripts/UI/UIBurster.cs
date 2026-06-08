@@ -70,6 +70,9 @@ namespace DrinkitGame.UI
             }
 
             if (emitHaptic) TelegramHaptics.Light();
+            // Полетели частицы «DONE» → гасим долго-играющий звук кофемашины
+            // (если он сейчас не играет, метод тихо ничего не делает).
+            if (AudioService.Instance != null) AudioService.Instance.StopCoffeeMachine();
         }
 
         private IEnumerator AnimateParticle(GameObject p, Vector2 origin, Vector2 dir)

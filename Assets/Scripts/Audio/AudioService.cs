@@ -52,6 +52,10 @@ namespace DrinkitGame.Audio
         [Tooltip("AudioSource для one-shot SFX. loop=false, playOnAwake=false.")]
         public AudioSource sfxSource;
 
+        [Tooltip("AudioSource для звуков, которые надо прерывать (кофемашина). " +
+                 "loop=false, playOnAwake=false. Создай отдельный дочерний с AudioSource.")]
+        public AudioSource interruptibleSource;
+
         // ===================== Громкости =====================
 
         [Header("Volumes")]
@@ -75,6 +79,7 @@ namespace DrinkitGame.Audio
             if (musicSource != null) { musicSource.loop = true; musicSource.playOnAwake = false; }
             if (ambienceSource != null) { ambienceSource.loop = true; ambienceSource.playOnAwake = false; }
             if (sfxSource != null) { sfxSource.loop = false; sfxSource.playOnAwake = false; }
+            if (interruptibleSource != null) { interruptibleSource.loop = false; interruptibleSource.playOnAwake = false; }
         }
 
         private void Start()
@@ -186,10 +191,31 @@ namespace DrinkitGame.Audio
         // ===================== Шорткаты =====================
 
         public void PlayClick()         => PlaySFX(sfxClick);
-        public void PlayCoffeeMachine() => PlaySFX(sfxCoffeeMachine);
         public void PlayFocus()         => PlaySFX(sfxFocus);
         public void PlayNewServe()      => PlaySFX(sfxNewServe);
         public void PlayRightWay()      => PlaySFX(sfxRightWay);
         public void PlaySuccess()       => PlaySFX(sfxSuccess);
+
+        /// Кофемашина играет на отдельном interruptibleSource, чтобы её можно было
+        /// оборвать через StopCoffeeMachine() (вызывается из UIBurster.Burst()).
+        public void PlayCoffeeMachine()
+        {
+            if (interruptibleSource != null && sfxCoffeeMachine != null)
+            {
+                interruptibleSource.clip = sfxCoffeeMachine;
+                interruptibleSource.volume = sfxVolume;
+                interruptibleSource.Play();
+            }
+            else
+            {
+                // Fallback на one-shot если interruptibleSource не подключен.
+                PlaySFX(sfxCoffeeMachine);
+            }
+        }
+
+        public void StopCoffeeMachine()
+        {
+            if (interruptibleSource != null) interruptibleSource.Stop();
+        }
     }
 }
