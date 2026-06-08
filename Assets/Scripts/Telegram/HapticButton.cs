@@ -1,16 +1,18 @@
+using DrinkitGame.Audio;
 using DrinkitGame.Telegram;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace DrinkitGame.Telegram
 {
-    /// Простой компонент: подвешивается на любую UI-кнопку и эмитит хаптик при тапе.
-    /// По умолчанию — selectionChanged (лёгкий «клик»). Меняй в инспекторе для разных вкусов.
+    /// Простой компонент: подвешивается на любую UI-кнопку и эмитит хаптик + звук при тапе.
+    /// По дефолту — Selection хаптик + Click звук. Меняй в инспекторе под исключения.
     [RequireComponent(typeof(Button))]
     public class HapticButton : MonoBehaviour
     {
         public enum HapticKind
         {
+            None,
             Selection,        // лёгкий «клик» — большинство кнопок
             ImpactLight,
             ImpactMedium,
@@ -22,8 +24,22 @@ namespace DrinkitGame.Telegram
             Warning
         }
 
-        [Tooltip("Тип хаптика на тап. Selection = стандарт для всех кнопок.")]
+        public enum SoundKind
+        {
+            Click,            // дефолт — Click.mp3
+            None,
+            CoffeeMachine,
+            Focus,
+            NewServe,
+            RightWay,
+            Success
+        }
+
+        [Tooltip("Тип хаптика на тап. Selection = стандарт.")]
         public HapticKind kind = HapticKind.Selection;
+
+        [Tooltip("Звук при тапе. Click = по умолчанию. None — тишина.")]
+        public SoundKind sound = SoundKind.Click;
 
         private Button _button;
 
@@ -40,6 +56,7 @@ namespace DrinkitGame.Telegram
 
         private void Trigger()
         {
+            // Haptic
             switch (kind)
             {
                 case HapticKind.Selection:   TelegramHaptics.Selection(); break;
@@ -51,6 +68,21 @@ namespace DrinkitGame.Telegram
                 case HapticKind.Success:     TelegramHaptics.Success(); break;
                 case HapticKind.Error:       TelegramHaptics.Error(); break;
                 case HapticKind.Warning:     TelegramHaptics.Warning(); break;
+                // None — ничего не делаем
+            }
+
+            // Sound
+            var audio = AudioService.Instance;
+            if (audio == null) return;
+            switch (sound)
+            {
+                case SoundKind.Click:         audio.PlayClick(); break;
+                case SoundKind.CoffeeMachine: audio.PlayCoffeeMachine(); break;
+                case SoundKind.Focus:         audio.PlayFocus(); break;
+                case SoundKind.NewServe:      audio.PlayNewServe(); break;
+                case SoundKind.RightWay:      audio.PlayRightWay(); break;
+                case SoundKind.Success:       audio.PlaySuccess(); break;
+                // None — тишина
             }
         }
     }

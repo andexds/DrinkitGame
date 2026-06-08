@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
+using DrinkitGame.Audio;
 using DrinkitGame.Cooking;
 using DrinkitGame.Core;
 using DrinkitGame.Data;
@@ -211,6 +212,18 @@ namespace DrinkitGame.UI
 
             var step = _steps[_currentIndex];
             if (!ko.Handles(step.type)) return; // защита
+
+            // Звук: тап на кофемашину → Coffee Machine, остальное → Right Way.
+            // Хаптик у KitchenObject обрабатывает Button.onClick (HapticButton), но
+            // мы здесь сами выбираем звук, потому что KitchenObject — особый случай.
+            var audio = AudioService.Instance;
+            if (audio != null)
+            {
+                bool isMachineTap = step.type == CookingStepType.Extract
+                                 || step.type == CookingStepType.AddHotWater;
+                if (isMachineTap) audio.PlayCoffeeMachine();
+                else audio.PlayRightWay();
+            }
 
             // TakeCup: проверяем что выбран правильный стакан + запускаем fade-in кружки на машине
             if (step.type == CookingStepType.TakeCup)

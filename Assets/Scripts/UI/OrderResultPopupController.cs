@@ -1,4 +1,5 @@
 using System.Text;
+using DrinkitGame.Audio;
 using DrinkitGame.Core;
 using TMPro;
 using UnityEngine;
@@ -34,6 +35,9 @@ namespace DrinkitGame.UI
 
             if (breakdownText != null) breakdownText.text = sb.ToString();
             if (finalLine != null) finalLine.text = $"+ {res.finalPayout} ₽";
+
+            // Звук успеха при показе результата.
+            if (AudioService.Instance != null) AudioService.Instance.PlaySuccess();
         }
 
         private void OnOk()

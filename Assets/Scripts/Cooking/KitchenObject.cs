@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using DrinkitGame.Audio;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -145,6 +146,8 @@ namespace DrinkitGame.Cooking
             if (hint == null) yield break;
 
             hint.gameObject.SetActive(true);
+            // Звук «фокус» когда хинт впервые появляется
+            if (AudioService.Instance != null) AudioService.Instance.PlayFocus();
             var rt = hint.rectTransform;
             Vector3 baseScale = Vector3.one;
 
