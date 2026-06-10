@@ -97,6 +97,9 @@ namespace DrinkitGame.Core
                 case WheelPrizeType.DoubleNextOrder:
                     _state.hasDoubleNextOrderBuff = true;
                     break;
+                case WheelPrizeType.MilkyWay:
+                    // Физический приз — в игре ничего не делаем, игрок получит шоколадку IRL.
+                    break;
                 case WheelPrizeType.Nothing:
                     // ничего
                     break;

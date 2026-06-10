@@ -147,6 +147,7 @@ namespace DrinkitGame.UI
                     return $"+ {s.displayLabel}";
                 case WheelPrizeType.DiscountVoucher: return "Получен ваучер -50%";
                 case WheelPrizeType.DoubleNextOrder: return "Получен буст ×2 заказ";
+                case WheelPrizeType.MilkyWay: return "🍫 Шоколадка Milky Way!";
                 case WheelPrizeType.Nothing: return "Не повезло :(";
                 default: return s.displayLabel;
             }
