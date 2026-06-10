@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   displayLabel: "200 \u20BD"
   icon: {fileID: 0}
-  probabilityPercent: 22
+  probabilityPercent: 12
   prizeType: 0
   coinsAmount: 50
   packProduct: {fileID: 0}
