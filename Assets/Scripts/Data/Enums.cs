@@ -51,6 +51,7 @@ namespace DrinkitGame.Data
         IngredientPack,       // пачка ингредиента (например молоко x10)
         DiscountVoucher,      // -50% на следующий рецепт
         DoubleNextOrder,      // следующий заказ платит x2
-        Nothing               // "не повезло"
+        Nothing,              // "не повезло"
+        MilkyWay              // реальная шоколадка Milky Way (физический приз)
     }
 }
