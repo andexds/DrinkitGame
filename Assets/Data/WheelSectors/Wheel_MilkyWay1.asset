@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1a565a9f770754c8380dd65e96b899e7, type: 3}
-  m_Name: Wheel_Coins500
+  m_Name: Wheel_MilkyWay1
   m_EditorClassIdentifier: 
-  displayLabel: "500 \u20BD"
-  icon: {fileID: 0}
+  displayLabel: Milky Way
+  icon: {fileID: 21300000, guid: 60276c81aa79f4491afe5074a9f55ec7, type: 3}
   probabilityPercent: 15
-  prizeType: 0
-  coinsAmount: 500
+  prizeType: 5
+  coinsAmount: 0
   packProduct: {fileID: 0}
   packQuantity: 0
